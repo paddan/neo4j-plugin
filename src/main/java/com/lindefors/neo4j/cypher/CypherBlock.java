@@ -72,7 +72,8 @@ public class CypherBlock extends AbstractBlock {
         return indent;
     }
 
-    protected ASTNode getNode() {
+    @Override
+    public ASTNode getNode() {
         return myNode;
     }
 
