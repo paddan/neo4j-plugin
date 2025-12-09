@@ -20,7 +20,7 @@ public class CypherFormattingModelBuilder implements FormattingModelBuilder {
         PsiElement element = formattingContext.getPsiElement();
         CodeStyleSettings settings = formattingContext.getCodeStyleSettings();
         SpacingBuilder spacingBuilder = new SpacingBuilder(settings, CypherLanguage.INSTANCE)
-                .around(CypherTokenTypes.OPERATOR).spaces(0)
+                .around(CypherTokenTypes.OPERATOR).spaces(1)
                 .after(CypherTokenTypes.COMMA).spaces(1)
                 .before(CypherTokenTypes.COMMA).spaces(0)
                 .before(CypherTokenTypes.PAREN_CLOSE).spaces(0)

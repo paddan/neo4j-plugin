@@ -193,10 +193,14 @@ public class CypherLexer extends LexerBase {
     }
 
     private void scanNumber() {
+        boolean seenDot = false;
         position++;
         while (position < endOffset) {
             char c = buffer.charAt(position);
-            if (Character.isDigit(c) || c == '.') {
+            if (Character.isDigit(c)) {
+                position++;
+            } else if (c == '.' && !seenDot && position + 1 < endOffset && Character.isDigit(buffer.charAt(position + 1))) {
+                seenDot = true;
                 position++;
             } else {
                 break;

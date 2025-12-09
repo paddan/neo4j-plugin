@@ -9,6 +9,7 @@ import com.intellij.formatting.SpacingBuilder;
 import com.intellij.formatting.Wrap;
 import com.intellij.formatting.WrapType;
 import com.intellij.lang.ASTNode;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.formatter.common.AbstractBlock;
 import org.jetbrains.annotations.NotNull;
@@ -49,6 +50,10 @@ public class CypherBlock extends AbstractBlock {
 
     @Override
     public @Nullable Spacing getSpacing(Block child1, @NotNull Block child2) {
+        Spacing relationshipSpacing = relationshipSpacing(child1, child2);
+        if (relationshipSpacing != null) {
+            return relationshipSpacing;
+        }
         return spacingBuilder.getSpacing(this, child1, child2);
     }
 
@@ -65,5 +70,51 @@ public class CypherBlock extends AbstractBlock {
     @Override
     public Indent getIndent() {
         return indent;
+    }
+
+    protected ASTNode getNode() {
+        return myNode;
+    }
+
+    private @Nullable Spacing relationshipSpacing(Block left, Block right) {
+        ASTNode leftNode = extractNode(left);
+        ASTNode rightNode = extractNode(right);
+        if (leftNode == null || rightNode == null) {
+            return null;
+        }
+
+        if (isRelationshipOperator(leftNode) && isPatternBoundary(rightNode.getElementType())) {
+            return Spacing.createSpacing(0, 0, 0, false, 0);
+        }
+        if (isPatternBoundary(leftNode.getElementType()) && isRelationshipOperator(rightNode)) {
+            return Spacing.createSpacing(0, 0, 0, false, 0);
+        }
+        if (isRelationshipOperator(leftNode) && isRelationshipOperator(rightNode)) {
+            return Spacing.createSpacing(0, 0, 0, false, 0);
+        }
+
+        return null;
+    }
+
+    private boolean isPatternBoundary(IElementType type) {
+        return type == CypherTokenTypes.PAREN_OPEN
+                || type == CypherTokenTypes.PAREN_CLOSE
+                || type == CypherTokenTypes.BRACKET_OPEN
+                || type == CypherTokenTypes.BRACKET_CLOSE;
+    }
+
+    private boolean isRelationshipOperator(ASTNode node) {
+        if (node.getElementType() != CypherTokenTypes.OPERATOR) {
+            return false;
+        }
+        String text = node.getText();
+        return "-".equals(text) || "->".equals(text) || "<-".equals(text) || "--".equals(text);
+    }
+
+    private @Nullable ASTNode extractNode(Block block) {
+        if (block instanceof CypherBlock) {
+            return ((CypherBlock) block).getNode();
+        }
+        return null;
     }
 }
