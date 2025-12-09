@@ -28,4 +28,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: neo4j-plugin
-          path: build/distributions/*
+          path: build/distributions/neo4j-plugin-*.zip
