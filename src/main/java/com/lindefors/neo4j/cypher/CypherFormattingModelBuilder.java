@@ -4,7 +4,6 @@ import com.intellij.formatting.Block;
 import com.intellij.formatting.FormattingContext;
 import com.intellij.formatting.FormattingModel;
 import com.intellij.formatting.FormattingModelProvider;
-import com.intellij.formatting.Indent;
 import com.intellij.formatting.WrapType;
 import com.intellij.formatting.SpacingBuilder;
 import com.intellij.formatting.Wrap;
@@ -30,7 +29,7 @@ public class CypherFormattingModelBuilder implements FormattingModelBuilder {
 
         ASTNode node = element.getNode();
         Block block = new CypherBlock(node, Wrap.createWrap(WrapType.NONE, false),
-                null, Indent.getNoneIndent(), spacingBuilder);
+                null, CypherIndents.none(), spacingBuilder);
         return FormattingModelProvider.createFormattingModelForPsiFile(element.getContainingFile(), block, settings);
     }
 }
