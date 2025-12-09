@@ -31,3 +31,42 @@
 
 ## Github action
 - Compiles and packages a downloadable artefact that can be imported as a plugin in intellij
+
+## Query structure and syntax for cypher queries
+- All keywords should be upper case
+
+### Read Query Structure
+```
+[USE]
+[MATCH [WHERE]]
+[OPTIONAL MATCH [WHERE]]
+[WITH [ORDER BY] [SKIP] [LIMIT] [WHERE]]
+RETURN [ORDER BY] [SKIP] [LIMIT]
+```
+
+### Write-Only Query Structure
+```
+[USE]
+[CREATE]
+[MERGE [ON CREATE ...] [ON MATCH ...]]
+[WITH [ORDER BY] [SKIP] [LIMIT] [WHERE]]
+[SET]
+[DELETE]
+[REMOVE]
+[RETURN [ORDER BY] [SKIP] [LIMIT]]
+```
+
+### Read-Write Query Structure
+```
+[USE]
+[MATCH [WHERE]]
+[OPTIONAL MATCH [WHERE]]
+[WITH [ORDER BY] [SKIP] [LIMIT] [WHERE]]
+[CREATE]
+[MERGE [ON CREATE ...] [ON MATCH ...]]
+[WITH [ORDER BY] [SKIP] [LIMIT] [WHERE]]
+[SET]
+[DELETE]
+[REMOVE]
+[RETURN [ORDER BY] [SKIP] [LIMIT]]
+```

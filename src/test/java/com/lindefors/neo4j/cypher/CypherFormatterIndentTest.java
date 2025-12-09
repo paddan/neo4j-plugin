@@ -8,8 +8,15 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
+import com.intellij.mock.MockApplication;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.formatting.Formatter;
+import com.intellij.formatting.FormatterImpl;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -21,6 +28,15 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CypherFormatterIndentTest {
+    @BeforeAll
+    static void setUpApplication() {
+        if (ApplicationManager.getApplication() == null) {
+            Disposable disposable = Disposer.newDisposable();
+            MockApplication application = new MockApplication(disposable);
+            application.registerService(Formatter.class, new FormatterImpl());
+            ApplicationManager.setApplication(application, disposable);
+        }
+    }
 
     @Test
     void indentsContentInsideBraces() {

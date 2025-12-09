@@ -17,6 +17,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 public class CypherBlock extends AbstractBlock {
     private final @Nullable SpacingBuilder spacingBuilder;
@@ -58,6 +60,10 @@ public class CypherBlock extends AbstractBlock {
 
     @Override
     public @Nullable Spacing getSpacing(Block child1, @NotNull Block child2) {
+        Spacing keywordSpacing = keywordSpacing(child1, child2);
+        if (keywordSpacing != null) {
+            return keywordSpacing;
+        }
         Spacing relationshipSpacing = relationshipSpacing(child1, child2);
         if (relationshipSpacing != null) {
             return relationshipSpacing;
@@ -86,6 +92,33 @@ public class CypherBlock extends AbstractBlock {
     @Override
     public ASTNode getNode() {
         return myNode;
+    }
+
+    private @Nullable Spacing keywordSpacing(Block left, Block right) {
+        ASTNode rightNode = extractNode(right);
+        if (rightNode == null || rightNode.getElementType() != CypherTokenTypes.KEYWORD) {
+            return null;
+        }
+
+        String keyword = rightNode.getText().toUpperCase(Locale.ENGLISH);
+        ASTNode leftNode = extractNode(left);
+        String leftKeyword = leftNode != null && leftNode.getElementType() == CypherTokenTypes.KEYWORD
+                ? leftNode.getText().toUpperCase(Locale.ENGLISH)
+                : null;
+
+        if (leftKeyword != null && INLINE_KEYWORD_PAIRS.contains(leftKeyword + " " + keyword)) {
+            return SINGLE_SPACE;
+        }
+
+        if (CLAUSE_START_KEYWORDS.contains(keyword)) {
+            return Spacing.createSpacing(0, 0, 1, true, 1);
+        }
+
+        if (CLAUSE_CONTINUATION_KEYWORDS.contains(keyword)) {
+            return SINGLE_SPACE;
+        }
+
+        return null;
     }
 
     private @Nullable Spacing relationshipSpacing(Block left, Block right) {
@@ -129,4 +162,43 @@ public class CypherBlock extends AbstractBlock {
         }
         return null;
     }
+
+    private static final Set<String> CLAUSE_START_KEYWORDS = Set.of(
+            "CALL",
+            "CREATE",
+            "DELETE",
+            "DETACH",
+            "FOREACH",
+            "LOAD",
+            "MATCH",
+            "MERGE",
+            "OPTIONAL",
+            "RETURN",
+            "REMOVE",
+            "SET",
+            "UNION",
+            "UNWIND",
+            "USE",
+            "WITH"
+    );
+
+    private static final Set<String> CLAUSE_CONTINUATION_KEYWORDS = Set.of(
+            "WHERE",
+            "ORDER",
+            "BY",
+            "SKIP",
+            "LIMIT",
+            "ON"
+    );
+
+    private static final Set<String> INLINE_KEYWORD_PAIRS = Set.of(
+            "OPTIONAL MATCH",
+            "LOAD CSV",
+            "CSV WITH",
+            "ORDER BY",
+            "ON CREATE",
+            "ON MATCH"
+    );
+
+    private static final Spacing SINGLE_SPACE = Spacing.createSpacing(1, 1, 0, false, 0);
 }

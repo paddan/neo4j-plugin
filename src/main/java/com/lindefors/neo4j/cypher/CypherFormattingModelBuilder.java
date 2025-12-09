@@ -25,7 +25,9 @@ public class CypherFormattingModelBuilder implements FormattingModelBuilder {
                 .before(CypherTokenTypes.PAREN_CLOSE).spaces(0)
                 .after(CypherTokenTypes.PAREN_OPEN).spaces(0)
                 .around(CypherTokenTypes.COLON).spaces(0)
-                .before(CypherTokenTypes.SEMICOLON).spaces(0);
+                .before(CypherTokenTypes.SEMICOLON).spaces(0)
+                .after(CypherTokenTypes.BRACE_OPEN).lineBreakInCode()
+                .before(CypherTokenTypes.BRACE_CLOSE).lineBreakInCode();
 
         ASTNode node = element.getNode();
         Block block = new CypherBlock(node, Wrap.createWrap(WrapType.NONE, false),
