@@ -18,7 +18,16 @@ public class CypherFormattingModelBuilder implements FormattingModelBuilder {
     public @NotNull FormattingModel createModel(@NotNull FormattingContext formattingContext) {
         PsiElement element = formattingContext.getPsiElement();
         CodeStyleSettings settings = formattingContext.getCodeStyleSettings();
-        SpacingBuilder spacingBuilder = new SpacingBuilder(settings, CypherLanguage.INSTANCE)
+        SpacingBuilder spacingBuilder = createSpacingBuilder(settings);
+
+        ASTNode node = element.getNode();
+        Block block = new CypherBlock(node, Wrap.createWrap(WrapType.NONE, false),
+                null, CypherIndents.none(), spacingBuilder);
+        return FormattingModelProvider.createFormattingModelForPsiFile(element.getContainingFile(), block, settings);
+    }
+
+    static SpacingBuilder createSpacingBuilder(CodeStyleSettings settings) {
+        return new SpacingBuilder(settings, CypherLanguage.INSTANCE)
                 .around(CypherTokenTypes.OPERATOR).spaces(1)
                 .after(CypherTokenTypes.COMMA).spaces(1)
                 .before(CypherTokenTypes.COMMA).spaces(0)
@@ -26,12 +35,7 @@ public class CypherFormattingModelBuilder implements FormattingModelBuilder {
                 .after(CypherTokenTypes.PAREN_OPEN).spaces(0)
                 .around(CypherTokenTypes.COLON).spaces(0)
                 .before(CypherTokenTypes.SEMICOLON).spaces(0)
-                .after(CypherTokenTypes.BRACE_OPEN).lineBreakInCode()
-                .before(CypherTokenTypes.BRACE_CLOSE).lineBreakInCode();
-
-        ASTNode node = element.getNode();
-        Block block = new CypherBlock(node, Wrap.createWrap(WrapType.NONE, false),
-                null, CypherIndents.none(), spacingBuilder);
-        return FormattingModelProvider.createFormattingModelForPsiFile(element.getContainingFile(), block, settings);
+                .after(CypherTokenTypes.BRACE_OPEN).spaces(1)
+                .before(CypherTokenTypes.BRACE_CLOSE).spaces(1);
     }
 }

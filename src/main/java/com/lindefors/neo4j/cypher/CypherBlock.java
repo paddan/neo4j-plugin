@@ -68,6 +68,10 @@ public class CypherBlock extends AbstractBlock {
         if (relationshipSpacing != null) {
             return relationshipSpacing;
         }
+        Spacing braceSpacing = braceSpacing(child1, child2);
+        if (braceSpacing != null) {
+            return braceSpacing;
+        }
         if (spacingBuilder == null) {
             return null;
         }
@@ -136,6 +140,26 @@ public class CypherBlock extends AbstractBlock {
         }
         if (isRelationshipOperator(leftNode) && isRelationshipOperator(rightNode)) {
             return Spacing.createSpacing(0, 0, 0, false, 0);
+        }
+
+        return null;
+    }
+
+    private @Nullable Spacing braceSpacing(Block left, Block right) {
+        ASTNode leftNode = extractNode(left);
+        ASTNode rightNode = extractNode(right);
+        if (leftNode == null || rightNode == null) {
+            return null;
+        }
+
+        boolean leftBraceOpen = leftNode.getElementType() == CypherTokenTypes.BRACE_OPEN;
+        boolean rightBraceClose = rightNode.getElementType() == CypherTokenTypes.BRACE_CLOSE;
+
+        if (leftBraceOpen && rightBraceClose) {
+            return Spacing.createSpacing(0, 0, 0, false, 0);
+        }
+        if (leftBraceOpen || rightBraceClose) {
+            return SINGLE_SPACE;
         }
 
         return null;
