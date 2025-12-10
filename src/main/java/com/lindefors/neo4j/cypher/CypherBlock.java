@@ -155,14 +155,85 @@ public class CypherBlock extends AbstractBlock {
         boolean leftBraceOpen = leftNode.getElementType() == CypherTokenTypes.BRACE_OPEN;
         boolean rightBraceClose = rightNode.getElementType() == CypherTokenTypes.BRACE_CLOSE;
 
+        boolean codeBlockBrace = (leftBraceOpen && isCodeBlockBrace(leftNode))
+                || (rightBraceClose && isCodeBlockBrace(rightNode));
+
         if (leftBraceOpen && rightBraceClose) {
             return Spacing.createSpacing(0, 0, 0, false, 0);
+        }
+        if (codeBlockBrace) {
+            return Spacing.createSpacing(0, 0, 1, true, 1);
         }
         if (leftBraceOpen || rightBraceClose) {
             return SINGLE_SPACE;
         }
 
         return null;
+    }
+
+    private boolean isCodeBlockBrace(@NotNull ASTNode braceNode) {
+        ASTNode openingBrace = braceNode.getElementType() == CypherTokenTypes.BRACE_OPEN
+                ? braceNode
+                : findOpeningBrace(braceNode);
+        ASTNode closingBrace = braceNode.getElementType() == CypherTokenTypes.BRACE_CLOSE
+                ? braceNode
+                : findClosingBrace(braceNode);
+
+        if (openingBrace == null || closingBrace == null) {
+            return false;
+        }
+
+        return containsClauseKeyword(openingBrace.getTreeNext(), closingBrace);
+    }
+
+    private @Nullable ASTNode findOpeningBrace(@NotNull ASTNode braceClose) {
+        int braceDepth = 0;
+        ASTNode current = braceClose.getTreePrev();
+        while (current != null) {
+            IElementType type = current.getElementType();
+            if (type == CypherTokenTypes.BRACE_CLOSE) {
+                braceDepth++;
+            } else if (type == CypherTokenTypes.BRACE_OPEN) {
+                if (braceDepth == 0) {
+                    return current;
+                }
+                braceDepth--;
+            }
+            current = current.getTreePrev();
+        }
+        return null;
+    }
+
+    private @Nullable ASTNode findClosingBrace(@NotNull ASTNode braceOpen) {
+        int braceDepth = 0;
+        ASTNode current = braceOpen.getTreeNext();
+        while (current != null) {
+            IElementType type = current.getElementType();
+            if (type == CypherTokenTypes.BRACE_OPEN) {
+                braceDepth++;
+            } else if (type == CypherTokenTypes.BRACE_CLOSE) {
+                if (braceDepth == 0) {
+                    return current;
+                }
+                braceDepth--;
+            }
+            current = current.getTreeNext();
+        }
+        return null;
+    }
+
+    private boolean containsClauseKeyword(@Nullable ASTNode startExclusive, @NotNull ASTNode endExclusive) {
+        ASTNode current = startExclusive;
+        while (current != null && current != endExclusive) {
+            if (current.getElementType() == CypherTokenTypes.KEYWORD) {
+                String keyword = current.getText().toUpperCase(Locale.ENGLISH);
+                if (CLAUSE_START_KEYWORDS.contains(keyword) || CLAUSE_CONTINUATION_KEYWORDS.contains(keyword)) {
+                    return true;
+                }
+            }
+            current = current.getTreeNext();
+        }
+        return false;
     }
 
     private boolean isPatternBoundary(IElementType type) {
