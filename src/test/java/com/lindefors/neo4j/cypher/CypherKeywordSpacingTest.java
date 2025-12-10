@@ -45,6 +45,21 @@ class CypherKeywordSpacingTest {
     }
 
     @Test
+    void doesNotAddLeadingLineBreakBeforeFirstKeyword() {
+        StubAstNode root = StubAstNode.root(
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "MATCH"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "RETURN")
+        );
+
+        CypherBlock parent = new CypherBlock(root, null, null, CypherIndents.none(), null, 4);
+        List<Block> children = parent.buildChildren();
+        Spacing spacing = parent.getSpacing(null, children.getFirst());
+
+        assertNotNull(spacing);
+        assertEquals(0, lineFeeds(spacing), "First keyword should not be preceded by a blank line");
+    }
+
+    @Test
     void keepsClauseContinuationsInline() {
         StubAstNode root = StubAstNode.root(
                 StubAstNode.token(CypherTokenTypes.KEYWORD, "MATCH"),
@@ -118,6 +133,30 @@ class CypherKeywordSpacingTest {
 
         assertSingleSpace(afterBraceOpen, "Properties inside braces should stay inline");
         assertSingleSpace(beforeBraceClose, "Closing brace should stay inline with properties");
+    }
+
+    @Test
+    void keepsRelationshipOperatorsTight() {
+        StubAstNode root = StubAstNode.root(
+                StubAstNode.token(CypherTokenTypes.PAREN_OPEN, "("),
+                StubAstNode.token(CypherTokenTypes.IDENTIFIER, "n"),
+                StubAstNode.token(CypherTokenTypes.PAREN_CLOSE, ")"),
+                StubAstNode.token(CypherTokenTypes.OPERATOR, "-->"),
+                StubAstNode.token(CypherTokenTypes.PAREN_OPEN, "("),
+                StubAstNode.token(CypherTokenTypes.IDENTIFIER, "m"),
+                StubAstNode.token(CypherTokenTypes.PAREN_CLOSE, ")")
+        );
+
+        Spacing beforeArrow = spacingAt(root, 2, 3);
+        Spacing afterArrow = spacingAt(root, 3, 4);
+
+        assertNotNull(beforeArrow);
+        assertEquals(0, minSpaces(beforeArrow), "No spaces should be added before relationship arrows");
+        assertEquals(0, maxSpaces(beforeArrow), "No spaces should be added before relationship arrows");
+
+        assertNotNull(afterArrow);
+        assertEquals(0, minSpaces(afterArrow), "No spaces should be added after relationship arrows");
+        assertEquals(0, maxSpaces(afterArrow), "No spaces should be added after relationship arrows");
     }
 
     @Test

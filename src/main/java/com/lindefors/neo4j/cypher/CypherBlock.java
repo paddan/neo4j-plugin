@@ -63,6 +63,9 @@ public class CypherBlock extends AbstractBlock {
 
     @Override
     public @Nullable Spacing getSpacing(Block child1, @NotNull Block child2) {
+        if (child1 == null) {
+            return Spacing.createSpacing(0, 0, 0, false, 0);
+        }
         Spacing keywordSpacing = keywordSpacing(child1, child2);
         if (keywordSpacing != null) {
             return keywordSpacing;
@@ -94,11 +97,6 @@ public class CypherBlock extends AbstractBlock {
     @Override
     public Indent getIndent() {
         return indent;
-    }
-
-    @Override
-    public ASTNode getNode() {
-        return myNode;
     }
 
     private Indent indentForBraceDepth(int braceDepth) {
@@ -262,7 +260,14 @@ public class CypherBlock extends AbstractBlock {
             return false;
         }
         String text = node.getText();
-        return "-".equals(text) || "->".equals(text) || "<-".equals(text) || "--".equals(text);
+        return "-".equals(text)
+                || "->".equals(text)
+                || "<-".equals(text)
+                || "--".equals(text)
+                || "-->".equals(text)
+                || "<--".equals(text)
+                || "<->".equals(text)
+                || "<-->".equals(text);
     }
 
     private @Nullable ASTNode extractNode(Block block) {
