@@ -46,8 +46,8 @@ class CypherFormatterIndentTest {
 
         List<CypherBlock> tokens = buildBlocks(root);
 
-        assertEquals("CALL", tokens.getFirst().getNode().getText());
-        assertEquals(Indent.Type.NONE, tokens.getFirst().getIndent().getType(), "CALL should not be indented");
+        assertEquals("CALL", tokens.get(0).getNode().getText());
+        assertEquals(Indent.Type.NONE, tokens.get(0).getIndent().getType(), "CALL should not be indented");
 
         assertEquals("{", tokens.get(1).getNode().getText());
         assertEquals(Indent.Type.NONE, tokens.get(1).getIndent().getType(), "Opening brace stays at base indent");
@@ -76,8 +76,8 @@ class CypherFormatterIndentTest {
 
         List<CypherBlock> tokens = buildBlocks(root);
 
-        assertEquals("{", tokens.getFirst().getNode().getText());
-        assertEquals(Indent.Type.NONE, tokens.getFirst().getIndent().getType(), "Opening brace stays at base indent");
+        assertEquals("{", tokens.get(0).getNode().getText());
+        assertEquals(Indent.Type.NONE, tokens.get(0).getIndent().getType(), "Opening brace stays at base indent");
 
         assertEquals("INNER", tokens.get(1).getNode().getText());
         assertEquals(Indent.Type.NORMAL, tokens.get(1).getIndent().getType(), "Content inside braces should be indented");
@@ -111,8 +111,8 @@ class CypherFormatterIndentTest {
 
         List<CypherBlock> tokens = buildBlocks(root);
 
-        assertEquals("CALL", tokens.getFirst().getNode().getText());
-        assertEquals(Indent.Type.NONE, tokens.getFirst().getIndent().getType(), "Outer clause stays at base indent");
+        assertEquals("CALL", tokens.get(0).getNode().getText());
+        assertEquals(Indent.Type.NONE, tokens.get(0).getIndent().getType(), "Outer clause stays at base indent");
 
         assertEquals("{", tokens.get(1).getNode().getText());
         assertEquals(Indent.Type.NONE, tokens.get(1).getIndent().getType(), "Outer opening brace is not indented");

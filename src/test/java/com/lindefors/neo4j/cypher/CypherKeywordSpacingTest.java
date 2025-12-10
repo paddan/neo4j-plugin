@@ -53,7 +53,7 @@ class CypherKeywordSpacingTest {
 
         CypherBlock parent = new CypherBlock(root, null, null, CypherIndents.none(), null, 4);
         List<Block> children = parent.buildChildren();
-        Spacing spacing = parent.getSpacing(null, children.getFirst());
+        Spacing spacing = parent.getSpacing(null, children.get(0));
 
         assertNotNull(spacing);
         assertEquals(0, lineFeeds(spacing), "First keyword should not be preceded by a blank line");

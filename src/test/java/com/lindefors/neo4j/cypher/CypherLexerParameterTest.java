@@ -17,7 +17,7 @@ class CypherLexerParameterTest {
         List<Token> tokens = lex("$name");
 
         assertEquals(1, tokens.size(), "Single parameter token expected");
-        Token param = tokens.getFirst();
+        Token param = tokens.get(0);
         assertEquals(CypherTokenTypes.PARAMETER, param.type);
         assertEquals("$name", param.text);
     }
@@ -27,7 +27,7 @@ class CypherLexerParameterTest {
         List<Token> tokens = lex("$(userName)");
 
         assertEquals(1, tokens.size(), "Single parameter token expected");
-        Token param = tokens.getFirst();
+        Token param = tokens.get(0);
         assertEquals(CypherTokenTypes.PARAMETER, param.type);
         assertEquals("$(userName)", param.text);
     }
@@ -37,7 +37,7 @@ class CypherLexerParameterTest {
         List<Token> tokens = lex("{paramName}");
 
         assertEquals(1, tokens.size(), "Single legacy parameter token expected");
-        Token param = tokens.getFirst();
+        Token param = tokens.get(0);
         assertEquals(CypherTokenTypes.PARAMETER, param.type);
         assertEquals("{paramName}", param.text);
     }
@@ -47,7 +47,7 @@ class CypherLexerParameterTest {
         List<Token> tokens = lex("{  param_name  }");
 
         assertEquals(1, tokens.size(), "Single legacy parameter token expected");
-        Token param = tokens.getFirst();
+        Token param = tokens.get(0);
         assertEquals(CypherTokenTypes.PARAMETER, param.type);
         assertEquals("{  param_name  }", param.text);
     }

@@ -24,5 +24,7 @@
         <lang.formatter language="Cypher" implementationClass="com.lindefors.neo4j.cypher.CypherFormattingModelBuilder"/>
         <lang.foldingBuilder language="Cypher" implementationClass="com.lindefors.neo4j.cypher.CypherFoldingBuilder"/>
         <lang.braceMatcher language="Cypher" implementationClass="com.lindefors.neo4j.cypher.CypherBraceMatcher"/>
+        <codeStyleSettingsProvider implementation="com.lindefors.neo4j.cypher.CypherCodeStyleSettingsProvider"/>
+        <langCodeStyleSettingsProvider implementation="com.lindefors.neo4j.cypher.CypherLanguageCodeStyleSettingsProvider"/>
     </extensions>
 </idea-plugin>
