@@ -108,6 +108,9 @@ public class CypherLexer extends LexerBase {
             scanParameter();
             return;
         }
+        if (current == '{' && scanLegacyParameter()) {
+            return;
+        }
         if (isIdentifierStart(current) || current == '`') {
             scanIdentifier();
             return;
@@ -232,6 +235,31 @@ public class CypherLexer extends LexerBase {
         }
         tokenType = CypherTokenTypes.PARAMETER;
         tokenEnd = position;
+    }
+
+    private boolean scanLegacyParameter() {
+        int i = position + 1;
+        while (i < endOffset && Character.isWhitespace(buffer.charAt(i))) {
+            i++;
+        }
+        if (i >= endOffset || !isIdentifierStart(buffer.charAt(i))) {
+            return false;
+        }
+        i++;
+        while (i < endOffset && isIdentifierPart(buffer.charAt(i))) {
+            i++;
+        }
+        while (i < endOffset && Character.isWhitespace(buffer.charAt(i))) {
+            i++;
+        }
+        if (i >= endOffset || buffer.charAt(i) != '}') {
+            return false;
+        }
+
+        position = i + 1;
+        tokenType = CypherTokenTypes.PARAMETER;
+        tokenEnd = position;
+        return true;
     }
 
     private void scanIdentifier() {

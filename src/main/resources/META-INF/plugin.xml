@@ -22,5 +22,7 @@
         <lang.syntaxHighlighterFactory language="Cypher" implementationClass="com.lindefors.neo4j.cypher.CypherSyntaxHighlighterFactory"/>
         <colorSettingsPage implementationClass="com.lindefors.neo4j.cypher.CypherColorSettingsPage"/>
         <lang.formatter language="Cypher" implementationClass="com.lindefors.neo4j.cypher.CypherFormattingModelBuilder"/>
+        <lang.foldingBuilder language="Cypher" implementationClass="com.lindefors.neo4j.cypher.CypherFoldingBuilder"/>
+        <lang.braceMatcher language="Cypher" implementationClass="com.lindefors.neo4j.cypher.CypherBraceMatcher"/>
     </extensions>
 </idea-plugin>

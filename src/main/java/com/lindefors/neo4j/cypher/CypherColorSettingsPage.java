@@ -23,7 +23,7 @@ public class CypherColorSettingsPage implements ColorSettingsPage {
             new AttributesDescriptor("Brackets", CypherSyntaxHighlighter.BRACKETS),
             new AttributesDescriptor("Braces", CypherSyntaxHighlighter.BRACES),
             new AttributesDescriptor("Dot", CypherSyntaxHighlighter.DOT),
-            new AttributesDescriptor("Parameter", CypherSyntaxHighlighter.PARAMETER)
+            new AttributesDescriptor("Parameter ($var)", CypherSyntaxHighlighter.PARAMETER)
     };
 
     @Override
