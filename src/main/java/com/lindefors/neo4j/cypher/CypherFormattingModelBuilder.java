@@ -11,6 +11,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.formatting.FormattingModelBuilder;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
+import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import org.jetbrains.annotations.NotNull;
 
 public class CypherFormattingModelBuilder implements FormattingModelBuilder {
@@ -19,10 +20,11 @@ public class CypherFormattingModelBuilder implements FormattingModelBuilder {
         PsiElement element = formattingContext.getPsiElement();
         CodeStyleSettings settings = formattingContext.getCodeStyleSettings();
         SpacingBuilder spacingBuilder = createSpacingBuilder(settings);
+        int indentSize = resolveIndentSize(settings, element);
 
         ASTNode node = element.getNode();
         Block block = new CypherBlock(node, Wrap.createWrap(WrapType.NONE, false),
-                null, CypherIndents.none(), spacingBuilder);
+                null, CypherIndents.none(), spacingBuilder, indentSize);
         return FormattingModelProvider.createFormattingModelForPsiFile(element.getContainingFile(), block, settings);
     }
 
@@ -37,5 +39,13 @@ public class CypherFormattingModelBuilder implements FormattingModelBuilder {
                 .before(CypherTokenTypes.SEMICOLON).spaces(0)
                 .after(CypherTokenTypes.BRACE_OPEN).spaces(1)
                 .before(CypherTokenTypes.BRACE_CLOSE).spaces(1);
+    }
+
+    private int resolveIndentSize(CodeStyleSettings settings, PsiElement element) {
+        CommonCodeStyleSettings.IndentOptions indentOptions = settings.getIndentOptions(element.getContainingFile().getFileType());
+        if (indentOptions.INDENT_SIZE > 0) {
+            return indentOptions.INDENT_SIZE;
+        }
+        return 4;
     }
 }

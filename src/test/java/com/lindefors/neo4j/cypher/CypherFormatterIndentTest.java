@@ -99,8 +99,55 @@ class CypherFormatterIndentTest {
         assertEquals(Indent.Type.NONE, tokens.get(3).getIndent().getType(), "Following tokens stay at base indent");
     }
 
+    @Test
+    void indentsNestedCodeBlocks() {
+        StubAstNode root = StubAstNode.root(
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "CALL"),
+                StubAstNode.whitespace(" "),
+                StubAstNode.token(CypherTokenTypes.BRACE_OPEN, "{"),
+                StubAstNode.whitespace("\n"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "MATCH"),
+                StubAstNode.whitespace("\n"),
+                StubAstNode.token(CypherTokenTypes.BRACE_OPEN, "{"),
+                StubAstNode.whitespace("\n"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "RETURN"),
+                StubAstNode.whitespace("\n"),
+                StubAstNode.token(CypherTokenTypes.BRACE_CLOSE, "}"),
+                StubAstNode.whitespace("\n"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "WITH"),
+                StubAstNode.whitespace("\n"),
+                StubAstNode.token(CypherTokenTypes.BRACE_CLOSE, "}")
+        );
+
+        List<CypherBlock> tokens = buildBlocks(root);
+
+        assertEquals("CALL", tokens.get(0).getNode().getText());
+        assertEquals(Indent.Type.NONE, tokens.get(0).getIndent().getType(), "Outer clause stays at base indent");
+
+        assertEquals("{", tokens.get(1).getNode().getText());
+        assertEquals(Indent.Type.NONE, tokens.get(1).getIndent().getType(), "Outer opening brace is not indented");
+
+        assertEquals("MATCH", tokens.get(2).getNode().getText());
+        assertEquals(Indent.Type.NORMAL, tokens.get(2).getIndent().getType(), "First level inside outer block uses normal indent");
+
+        assertEquals("{", tokens.get(3).getNode().getText());
+        assertEquals(Indent.Type.NORMAL, tokens.get(3).getIndent().getType(), "Nested block opening aligns with first-level indent");
+
+        assertEquals("RETURN", tokens.get(4).getNode().getText());
+        assertEquals(Indent.Type.SPACES, tokens.get(4).getIndent().getType(), "Second level statements get an extra indent");
+
+        assertEquals("}", tokens.get(5).getNode().getText());
+        assertEquals(Indent.Type.NORMAL, tokens.get(5).getIndent().getType(), "Closing nested block steps back one level");
+
+        assertEquals("WITH", tokens.get(6).getNode().getText());
+        assertEquals(Indent.Type.NORMAL, tokens.get(6).getIndent().getType(), "Content after nested block remains at first level");
+
+        assertEquals("}", tokens.get(7).getNode().getText());
+        assertEquals(Indent.Type.NONE, tokens.get(7).getIndent().getType(), "Outer closing brace returns to base indent");
+    }
+
     private List<CypherBlock> buildBlocks(StubAstNode root) {
-        List<Block> children = new CypherBlock(root, null, null, CypherIndents.none(), null).buildChildren();
+        List<Block> children = new CypherBlock(root, null, null, CypherIndents.none(), null, 4).buildChildren();
         List<CypherBlock> tokens = new ArrayList<>();
         for (Block child : children) {
             CypherBlock block = (CypherBlock) child;

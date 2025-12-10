@@ -23,15 +23,18 @@ import java.util.Set;
 public class CypherBlock extends AbstractBlock {
     private final @Nullable SpacingBuilder spacingBuilder;
     private final Indent indent;
+    private final int indentSize;
 
     protected CypherBlock(@NotNull ASTNode node,
                           @Nullable Wrap wrap,
                           @Nullable Alignment alignment,
                           @NotNull Indent indent,
-                          @Nullable SpacingBuilder spacingBuilder) {
+                          @Nullable SpacingBuilder spacingBuilder,
+                          int indentSize) {
         super(node, wrap, alignment);
         this.spacingBuilder = spacingBuilder;
         this.indent = indent;
+        this.indentSize = indentSize;
     }
 
     @Override
@@ -47,9 +50,9 @@ public class CypherBlock extends AbstractBlock {
             if (child.getElementType() == CypherTokenTypes.BRACE_CLOSE && braceBalance > 0) {
                 braceBalance--;
             }
-            Indent childIndent = braceBalance > 0 ? CypherIndents.normal() : CypherIndents.none();
+            Indent childIndent = braceBalance > 0 ? indentForBraceDepth(braceBalance) : CypherIndents.none();
             Wrap childWrap = spacingBuilder == null ? null : Wrap.createWrap(WrapType.NONE, false);
-            blocks.add(new CypherBlock(child, childWrap, null, childIndent, spacingBuilder));
+            blocks.add(new CypherBlock(child, childWrap, null, childIndent, spacingBuilder, indentSize));
             if (child.getElementType() == CypherTokenTypes.BRACE_OPEN) {
                 braceBalance++;
             }
@@ -96,6 +99,17 @@ public class CypherBlock extends AbstractBlock {
     @Override
     public ASTNode getNode() {
         return myNode;
+    }
+
+    private Indent indentForBraceDepth(int braceDepth) {
+        if (braceDepth <= 0) {
+            return CypherIndents.none();
+        }
+        int indentSpaces = Math.max(1, indentSize) * braceDepth;
+        if (braceDepth == 1 && indentSpaces == indentSize) {
+            return CypherIndents.normal();
+        }
+        return Indent.getSpaceIndent(indentSpaces);
     }
 
     private @Nullable Spacing keywordSpacing(Block left, Block right) {
