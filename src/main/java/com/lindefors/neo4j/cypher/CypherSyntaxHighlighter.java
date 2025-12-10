@@ -17,7 +17,7 @@ public class CypherSyntaxHighlighter extends SyntaxHighlighterBase {
     public static final TextAttributesKey KEYWORD =
             TextAttributesKey.createTextAttributesKey("CYPHER_KEYWORD", DefaultLanguageHighlighterColors.KEYWORD);
     public static final TextAttributesKey IDENTIFIER =
-            TextAttributesKey.createTextAttributesKey("CYPHER_IDENTIFIER", DefaultLanguageHighlighterColors.IDENTIFIER);
+            TextAttributesKey.createTextAttributesKey("CYPHER_IDENTIFIER", DefaultLanguageHighlighterColors.LOCAL_VARIABLE);
     public static final TextAttributesKey NUMBER =
             TextAttributesKey.createTextAttributesKey("CYPHER_NUMBER", DefaultLanguageHighlighterColors.NUMBER);
     public static final TextAttributesKey STRING =

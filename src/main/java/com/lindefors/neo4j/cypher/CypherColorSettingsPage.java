@@ -14,7 +14,7 @@ import java.util.Map;
 public class CypherColorSettingsPage implements ColorSettingsPage {
     private static final AttributesDescriptor[] DESCRIPTORS = new AttributesDescriptor[]{
             new AttributesDescriptor("Keyword", CypherSyntaxHighlighter.KEYWORD),
-            new AttributesDescriptor("Identifier", CypherSyntaxHighlighter.IDENTIFIER),
+            new AttributesDescriptor("Identifier / Variable", CypherSyntaxHighlighter.IDENTIFIER),
             new AttributesDescriptor("Number", CypherSyntaxHighlighter.NUMBER),
             new AttributesDescriptor("String", CypherSyntaxHighlighter.STRING),
             new AttributesDescriptor("Comment", CypherSyntaxHighlighter.COMMENT),
