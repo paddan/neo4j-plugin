@@ -4,7 +4,7 @@ A lightweight IntelliJ IDEA plugin that adds basic support for Neo4j Cypher file
 
 ## Requirements
 - IntelliJ IDEA 2024.2+ (IU; compatible up to 253.* per `untilBuild`)
-- JDK 17 (configured via Gradle toolchains)
+- JDK 21 (configured via Gradle toolchains)
 
 ## Build and Run
 - Compile & test: `./gradlew build`

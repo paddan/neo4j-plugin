@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>com.lindefors.neo4j.cypher</id>
-    <name>Neo4j Cypher Tools</name>
-    <vendor email="dev@example.com">Neo4j Plugin</vendor>
+    <name>Neo4j Cypher Syntax Highlighter and Formatter</name>
+    <vendor email="patrik@lindefors.com">Patrik Lindefors</vendor>
     <description>
         <![CDATA[
         Basic Neo4j Cypher support: file type registration, syntax highlighting, and a lightweight formatter.
@@ -20,7 +20,7 @@
                   fieldName="INSTANCE"/>
         <lang.parserDefinition language="Cypher" implementationClass="com.lindefors.neo4j.cypher.CypherParserDefinition"/>
         <lang.syntaxHighlighterFactory language="Cypher" implementationClass="com.lindefors.neo4j.cypher.CypherSyntaxHighlighterFactory"/>
-        <colorSettingsPage implementationClass="com.lindefors.neo4j.cypher.CypherColorSettingsPage"/>
+        <colorSettingsPage implementation="com.lindefors.neo4j.cypher.CypherColorSettingsPage"/>
         <lang.formatter language="Cypher" implementationClass="com.lindefors.neo4j.cypher.CypherFormattingModelBuilder"/>
         <lang.foldingBuilder language="Cypher" implementationClass="com.lindefors.neo4j.cypher.CypherFoldingBuilder"/>
         <lang.braceMatcher language="Cypher" implementationClass="com.lindefors.neo4j.cypher.CypherBraceMatcher"/>

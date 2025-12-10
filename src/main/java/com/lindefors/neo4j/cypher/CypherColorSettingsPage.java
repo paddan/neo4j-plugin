@@ -14,7 +14,7 @@ import java.util.Map;
 public class CypherColorSettingsPage implements ColorSettingsPage {
     private static final AttributesDescriptor[] DESCRIPTORS = new AttributesDescriptor[]{
             new AttributesDescriptor("Keyword", CypherSyntaxHighlighter.KEYWORD),
-            new AttributesDescriptor("Identifier / Variable", CypherSyntaxHighlighter.IDENTIFIER),
+            new AttributesDescriptor("Identifier", CypherSyntaxHighlighter.IDENTIFIER),
             new AttributesDescriptor("Number", CypherSyntaxHighlighter.NUMBER),
             new AttributesDescriptor("String", CypherSyntaxHighlighter.STRING),
             new AttributesDescriptor("Comment", CypherSyntaxHighlighter.COMMENT),
@@ -23,7 +23,7 @@ public class CypherColorSettingsPage implements ColorSettingsPage {
             new AttributesDescriptor("Brackets", CypherSyntaxHighlighter.BRACKETS),
             new AttributesDescriptor("Braces", CypherSyntaxHighlighter.BRACES),
             new AttributesDescriptor("Dot", CypherSyntaxHighlighter.DOT),
-            new AttributesDescriptor("Parameter ($var)", CypherSyntaxHighlighter.PARAMETER)
+            new AttributesDescriptor("Parameter", CypherSyntaxHighlighter.PARAMETER)
     };
 
     @Override
@@ -57,14 +57,12 @@ public class CypherColorSettingsPage implements ColorSettingsPage {
     }
 
     @Override
-    @NotNull
-    public AttributesDescriptor[] getAttributeDescriptors() {
+    public AttributesDescriptor @NotNull [] getAttributeDescriptors() {
         return DESCRIPTORS;
     }
 
     @Override
-    @NotNull
-    public ColorDescriptor[] getColorDescriptors() {
+    public ColorDescriptor @NotNull [] getColorDescriptors() {
         return ColorDescriptor.EMPTY_ARRAY;
     }
 

@@ -26,7 +26,7 @@ public class CypherFileType extends LanguageFileType {
 
     @Override
     public @NotNull @NonNls String getDefaultExtension() {
-        return "cypher";
+        return "cyp";
     }
 
     @Override

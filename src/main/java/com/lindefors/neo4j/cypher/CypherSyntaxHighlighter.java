@@ -17,13 +17,13 @@ public class CypherSyntaxHighlighter extends SyntaxHighlighterBase {
     public static final TextAttributesKey KEYWORD =
             TextAttributesKey.createTextAttributesKey("CYPHER_KEYWORD", DefaultLanguageHighlighterColors.KEYWORD);
     public static final TextAttributesKey IDENTIFIER =
-            TextAttributesKey.createTextAttributesKey("CYPHER_IDENTIFIER", DefaultLanguageHighlighterColors.LOCAL_VARIABLE);
+            TextAttributesKey.createTextAttributesKey("CYPHER_IDENTIFIER", DefaultLanguageHighlighterColors.IDENTIFIER);
     public static final TextAttributesKey NUMBER =
             TextAttributesKey.createTextAttributesKey("CYPHER_NUMBER", DefaultLanguageHighlighterColors.NUMBER);
     public static final TextAttributesKey STRING =
             TextAttributesKey.createTextAttributesKey("CYPHER_STRING", DefaultLanguageHighlighterColors.STRING);
     public static final TextAttributesKey COMMENT =
-            TextAttributesKey.createTextAttributesKey("CYPHER_COMMENT", DefaultLanguageHighlighterColors.LINE_COMMENT);
+            TextAttributesKey.createTextAttributesKey("CYPHER_COMMENT", DefaultLanguageHighlighterColors.DOC_COMMENT);
     public static final TextAttributesKey OPERATOR =
             TextAttributesKey.createTextAttributesKey("CYPHER_OPERATOR", DefaultLanguageHighlighterColors.OPERATION_SIGN);
     public static final TextAttributesKey PARENTHESES =
@@ -35,7 +35,7 @@ public class CypherSyntaxHighlighter extends SyntaxHighlighterBase {
     public static final TextAttributesKey DOT =
             TextAttributesKey.createTextAttributesKey("CYPHER_DOT", DefaultLanguageHighlighterColors.DOT);
     public static final TextAttributesKey PARAMETER =
-            TextAttributesKey.createTextAttributesKey("CYPHER_PARAMETER", DefaultLanguageHighlighterColors.PARAMETER);
+            TextAttributesKey.createTextAttributesKey("CYPHER_PARAMETER", DefaultLanguageHighlighterColors.INSTANCE_FIELD);
 
     static {
         KEYS.put(CypherTokenTypes.KEYWORD, KEYWORD);

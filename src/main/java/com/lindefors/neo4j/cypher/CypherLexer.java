@@ -18,7 +18,7 @@ public class CypherLexer extends LexerBase {
             "FOREACH", "LOAD", "CSV", "FROM", "WITH", "HEADERS", "CALL", "YIELD",
             "AS", "ORDER", "BY", "SKIP", "LIMIT", "ASC", "DESC",
             "UNION", "ALL", "DISTINCT", "ON", "USING", "INDEX", "CONSTRAINT",
-            "EXISTS", "TRUE", "FALSE", "NULL"
+            "EXISTS", "TRUE", "FALSE", "NULL", "COUNT"
     ));
 
     private CharSequence buffer = "";
@@ -343,20 +343,9 @@ public class CypherLexer extends LexerBase {
     }
 
     private boolean operatorChar(char c) {
-        switch (c) {
-            case '+':
-            case '-':
-            case '*':
-            case '/':
-            case '=':
-            case '<':
-            case '>':
-            case '&':
-            case '|':
-            case '!':
-                return true;
-            default:
-                return false;
-        }
+        return switch (c) {
+            case '+', '-', '*', '/', '=', '<', '>', '&', '|', '!' -> true;
+            default -> false;
+        };
     }
 }
