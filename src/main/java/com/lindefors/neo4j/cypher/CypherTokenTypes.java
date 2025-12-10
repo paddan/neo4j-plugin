@@ -19,4 +19,5 @@ public interface CypherTokenTypes {
     IElementType COLON = new IElementType("COLON", CypherLanguage.INSTANCE);
     IElementType SEMICOLON = new IElementType("SEMICOLON", CypherLanguage.INSTANCE);
     IElementType OPERATOR = new IElementType("OPERATOR", CypherLanguage.INSTANCE);
+    IElementType PARAMETER = new IElementType("PARAMETER", CypherLanguage.INSTANCE);
 }

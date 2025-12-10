@@ -22,45 +22,55 @@ public class CypherColorSettingsPage implements ColorSettingsPage {
             new AttributesDescriptor("Parentheses", CypherSyntaxHighlighter.PARENTHESES),
             new AttributesDescriptor("Brackets", CypherSyntaxHighlighter.BRACKETS),
             new AttributesDescriptor("Braces", CypherSyntaxHighlighter.BRACES),
-            new AttributesDescriptor("Dot", CypherSyntaxHighlighter.DOT)
+            new AttributesDescriptor("Dot", CypherSyntaxHighlighter.DOT),
+            new AttributesDescriptor("Parameter", CypherSyntaxHighlighter.PARAMETER)
     };
 
     @Override
-    public @Nullable Icon getIcon() {
+    @Nullable
+    public Icon getIcon() {
         return null;
     }
 
     @Override
-    public @NotNull SyntaxHighlighter getHighlighter() {
+    @NotNull
+    public SyntaxHighlighter getHighlighter() {
         return new CypherSyntaxHighlighter();
     }
 
     @Override
-    public @NotNull String getDemoText() {
-        return "" +
-                "// Sample Cypher\n" +
-                "MATCH (u:User {id: 42})-[:FRIEND]->(friend)\n" +
-                "WHERE friend.active = true\n" +
-                "RETURN DISTINCT friend.name, friend.age ORDER BY friend.age DESC LIMIT 10;\n";
+    @NotNull
+    public String getDemoText() {
+        return """
+                // Sample Cypher
+                MATCH (u:User {id: $userId, name: $(userName)})-[:FRIEND]->(friend)
+                WHERE friend.active = true
+                CALL { WITH $userId RETURN COUNT(*) AS c }
+                RETURN DISTINCT friend.name, friend.age, c ORDER BY friend.age DESC LIMIT 10;
+                """;
     }
 
     @Override
-    public @Nullable Map<String, TextAttributesKey> getAdditionalHighlightingTagToDescriptorMap() {
+    @Nullable
+    public Map<String, TextAttributesKey> getAdditionalHighlightingTagToDescriptorMap() {
         return null;
     }
 
     @Override
-    public @NotNull AttributesDescriptor[] getAttributeDescriptors() {
+    @NotNull
+    public AttributesDescriptor[] getAttributeDescriptors() {
         return DESCRIPTORS;
     }
 
     @Override
-    public @NotNull ColorDescriptor[] getColorDescriptors() {
+    @NotNull
+    public ColorDescriptor[] getColorDescriptors() {
         return ColorDescriptor.EMPTY_ARRAY;
     }
 
     @Override
-    public @NotNull String getDisplayName() {
+    @NotNull
+    public String getDisplayName() {
         return "Cypher";
     }
 }

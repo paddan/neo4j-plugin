@@ -34,6 +34,8 @@ public class CypherSyntaxHighlighter extends SyntaxHighlighterBase {
             TextAttributesKey.createTextAttributesKey("CYPHER_BRACES", DefaultLanguageHighlighterColors.BRACES);
     public static final TextAttributesKey DOT =
             TextAttributesKey.createTextAttributesKey("CYPHER_DOT", DefaultLanguageHighlighterColors.DOT);
+    public static final TextAttributesKey PARAMETER =
+            TextAttributesKey.createTextAttributesKey("CYPHER_PARAMETER", DefaultLanguageHighlighterColors.PARAMETER);
 
     static {
         KEYS.put(CypherTokenTypes.KEYWORD, KEYWORD);
@@ -49,6 +51,7 @@ public class CypherSyntaxHighlighter extends SyntaxHighlighterBase {
         KEYS.put(CypherTokenTypes.BRACE_OPEN, BRACES);
         KEYS.put(CypherTokenTypes.BRACE_CLOSE, BRACES);
         KEYS.put(CypherTokenTypes.DOT, DOT);
+        KEYS.put(CypherTokenTypes.PARAMETER, PARAMETER);
     }
 
     @Override

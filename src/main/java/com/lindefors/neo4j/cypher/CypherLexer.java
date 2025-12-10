@@ -22,7 +22,6 @@ public class CypherLexer extends LexerBase {
     ));
 
     private CharSequence buffer = "";
-    private int startOffset;
     private int endOffset;
     private int position;
     private int tokenStart;
@@ -32,7 +31,6 @@ public class CypherLexer extends LexerBase {
     @Override
     public void start(@NotNull CharSequence buffer, int startOffset, int endOffset, int initialState) {
         this.buffer = buffer;
-        this.startOffset = startOffset;
         this.endOffset = endOffset;
         this.position = startOffset;
         locateToken();
@@ -104,6 +102,10 @@ public class CypherLexer extends LexerBase {
         }
         if (Character.isDigit(current)) {
             scanNumber();
+            return;
+        }
+        if (current == '$') {
+            scanParameter();
             return;
         }
         if (isIdentifierStart(current) || current == '`') {
@@ -207,6 +209,28 @@ public class CypherLexer extends LexerBase {
             }
         }
         tokenType = CypherTokenTypes.NUMBER;
+        tokenEnd = position;
+    }
+
+    private void scanParameter() {
+        position++; // consume $
+        if (position < endOffset && buffer.charAt(position) == '(') {
+            position++; // consume opening paren
+            while (position < endOffset && buffer.charAt(position) != ')') {
+                position++;
+            }
+            if (position < endOffset && buffer.charAt(position) == ')') {
+                position++;
+            }
+            tokenType = CypherTokenTypes.PARAMETER;
+            tokenEnd = position;
+            return;
+        }
+
+        while (position < endOffset && isIdentifierPart(buffer.charAt(position))) {
+            position++;
+        }
+        tokenType = CypherTokenTypes.PARAMETER;
         tokenEnd = position;
     }
 
