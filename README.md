@@ -1,4 +1,4 @@
-# Neo4j Cypher Tools (IntelliJ Plugin)
+# Neo4j Cypher Syntax Highlighter and Formatter (IntelliJ Plugin)
 
 [![Latest Release](https://img.shields.io/github/v/release/paddan/neo4j-plugin?label=Download&logo=github)](https://github.com/paddan/neo4j-plugin/releases/latest)
 
