@@ -21,7 +21,7 @@ class CypherSyntaxHighlighterParameterTest {
         List<TokenHighlights> tokens = collectTokens("$name");
 
         assertEquals(1, tokens.size(), "Expected single parameter token");
-        assertArrayEquals(new TextAttributesKey[]{CypherSyntaxHighlighter.PARAMETER}, tokens.getFirst().highlights());
+        assertArrayEquals(new TextAttributesKey[]{CypherSyntaxHighlighter.PARAMETER}, tokens.get(0).highlights());
     }
 
     @Test
@@ -29,7 +29,7 @@ class CypherSyntaxHighlighterParameterTest {
         List<TokenHighlights> tokens = collectTokens("$(userName)");
 
         assertEquals(1, tokens.size(), "Expected single parameter token");
-        assertArrayEquals(new TextAttributesKey[]{CypherSyntaxHighlighter.PARAMETER}, tokens.getFirst().highlights());
+        assertArrayEquals(new TextAttributesKey[]{CypherSyntaxHighlighter.PARAMETER}, tokens.get(0).highlights());
     }
 
     @Test
@@ -37,7 +37,7 @@ class CypherSyntaxHighlighterParameterTest {
         List<TokenHighlights> tokens = collectTokens("{param}");
 
         assertEquals(1, tokens.size(), "Expected single legacy parameter token");
-        assertArrayEquals(new TextAttributesKey[]{CypherSyntaxHighlighter.PARAMETER}, tokens.getFirst().highlights());
+        assertArrayEquals(new TextAttributesKey[]{CypherSyntaxHighlighter.PARAMETER}, tokens.get(0).highlights());
     }
 
     @Test
@@ -55,7 +55,7 @@ class CypherSyntaxHighlighterParameterTest {
 
     @Test
     void parameterUsesParameterFallbackColor() {
-        assertEquals(DefaultLanguageHighlighterColors.PARAMETER, CypherSyntaxHighlighter.PARAMETER.getFallbackAttributeKey());
+        assertEquals(DefaultLanguageHighlighterColors.INSTANCE_FIELD, CypherSyntaxHighlighter.PARAMETER.getFallbackAttributeKey());
     }
 
     private List<TokenHighlights> collectTokens(String source) {

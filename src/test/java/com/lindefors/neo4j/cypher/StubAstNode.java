@@ -116,12 +116,12 @@ final class StubAstNode implements ASTNode {
 
     @Override
     public @Nullable ASTNode getFirstChildNode() {
-        return children.isEmpty() ? null : children.getFirst();
+        return children.isEmpty() ? null : children.get(0);
     }
 
     @Override
     public @Nullable ASTNode getLastChildNode() {
-        return children.isEmpty() ? null : children.getLast();
+        return children.isEmpty() ? null : children.get(children.size() - 1);
     }
 
     @Override

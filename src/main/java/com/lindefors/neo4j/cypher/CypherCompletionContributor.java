@@ -9,16 +9,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.List;
 
-public class CypherCompletionContributor extends CompletionContributor {
-    private static final List<String> KEYWORDS = Arrays.asList(
-            "MATCH", "OPTIONAL", "WHERE", "RETURN", "WITH", "UNWIND",
-            "CREATE", "MERGE", "DELETE", "DETACH", "SET", "REMOVE",
-            "FOREACH", "LOAD", "CSV", "FROM", "HEADERS", "CALL", "YIELD",
-            "AS", "ORDER", "BY", "SKIP", "LIMIT", "ASC", "DESC",
-            "UNION", "ALL", "DISTINCT", "ON", "USING", "INDEX", "CONSTRAINT",
-            "EXISTS", "TRUE", "FALSE", "NULL", "COUNT"
-    );
+import static com.lindefors.neo4j.cypher.CypherTokenTypes.KEYWORDS;
 
+public class CypherCompletionContributor extends CompletionContributor {
     private static final List<String> OPERATORS = Arrays.asList(
             "=", "<>", "<", ">", "<=", ">=", "+", "-", "*", "/", "%", "^",
             "AND", "OR", "XOR", "NOT", "IN", "IS", "CONTAINS", "STARTS", "ENDS"

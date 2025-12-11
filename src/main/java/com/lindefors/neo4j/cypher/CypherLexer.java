@@ -6,20 +6,12 @@ import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
 public class CypherLexer extends LexerBase {
-    private static final Set<String> KEYWORDS = new HashSet<>(Arrays.asList(
-            "MATCH", "OPTIONAL", "WHERE", "RETURN", "WITH", "UNWIND",
-            "CREATE", "MERGE", "DELETE", "DETACH", "SET", "REMOVE",
-            "FOREACH", "LOAD", "CSV", "FROM", "WITH", "HEADERS", "CALL", "YIELD",
-            "AS", "ORDER", "BY", "SKIP", "LIMIT", "ASC", "DESC",
-            "UNION", "ALL", "DISTINCT", "ON", "USING", "INDEX", "CONSTRAINT",
-            "EXISTS", "TRUE", "FALSE", "NULL", "COUNT"
-    ));
+    private static final Set<String> KEYWORDS = new HashSet<>(CypherTokenTypes.KEYWORDS);
 
     private CharSequence buffer = "";
     private int endOffset;
