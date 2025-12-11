@@ -2,7 +2,18 @@ package com.lindefors.neo4j.cypher;
 
 import com.intellij.psi.tree.IElementType;
 
+import java.util.Arrays;
+import java.util.List;
+
 public interface CypherTokenTypes {
+    List<String> KEYWORDS = Arrays.asList(
+            "MATCH", "OPTIONAL", "WHERE", "RETURN", "WITH", "UNWIND",
+            "CREATE", "MERGE", "DELETE", "DETACH", "SET", "REMOVE",
+            "FOREACH", "LOAD", "CSV", "FROM", "HEADERS", "CALL", "YIELD",
+            "AS", "ORDER", "BY", "SKIP", "LIMIT", "ASC", "DESC",
+            "UNION", "ALL", "DISTINCT", "ON", "USING", "INDEX", "CONSTRAINT",
+            "EXISTS", "TRUE", "FALSE", "NULL", "COUNT"
+    );
     IElementType KEYWORD = new IElementType("KEYWORD", CypherLanguage.INSTANCE);
     IElementType IDENTIFIER = new IElementType("IDENTIFIER", CypherLanguage.INSTANCE);
     IElementType NUMBER = new IElementType("NUMBER", CypherLanguage.INSTANCE);
