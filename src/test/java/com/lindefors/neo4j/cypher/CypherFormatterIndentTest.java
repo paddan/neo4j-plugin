@@ -138,6 +138,34 @@ class CypherFormatterIndentTest {
     }
 
     @Test
+    void usesContinuationIndentForTabsInNestedBlocks() {
+        StubAstNode root = StubAstNode.root(
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "CALL"),
+                StubAstNode.whitespace(" "),
+                StubAstNode.token(CypherTokenTypes.BRACE_OPEN, "{"),
+                StubAstNode.whitespace("\n"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "MATCH"),
+                StubAstNode.whitespace("\n"),
+                StubAstNode.token(CypherTokenTypes.BRACE_OPEN, "{"),
+                StubAstNode.whitespace("\n"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "RETURN"),
+                StubAstNode.whitespace("\n"),
+                StubAstNode.token(CypherTokenTypes.BRACE_CLOSE, "}"),
+                StubAstNode.whitespace("\n"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "WITH"),
+                StubAstNode.whitespace("\n"),
+                StubAstNode.token(CypherTokenTypes.BRACE_CLOSE, "}")
+        );
+
+        List<CypherBlock> tokens = buildBlocks(root, true);
+
+        assertEquals(Indent.Type.NONE, tokens.get(0).getIndent().getType(), "Outer clause stays at base indent");
+        assertEquals(Indent.Type.NORMAL, tokens.get(2).getIndent().getType(), "First level inside outer block uses normal indent");
+        assertEquals(Indent.Type.CONTINUATION_WITHOUT_FIRST, tokens.get(4).getIndent().getType(),
+                "Nested content should use continuation indent when tabs are configured");
+    }
+
+    @Test
     void keepsBaseIndentBetweenTopLevelKeywords() {
         CypherBlock block = new CypherBlock(
                 StubAstNode.root(
@@ -148,7 +176,8 @@ class CypherFormatterIndentTest {
                 null,
                 CypherIndents.none(),
                 null,
-                4
+                4,
+                false
         );
 
         ChildAttributes attributes = block.getChildAttributes(1);
@@ -169,7 +198,8 @@ class CypherFormatterIndentTest {
                 null,
                 CypherIndents.none(),
                 null,
-                4
+                4,
+                false
         );
 
         ChildAttributes afterOpeningBrace = block.getChildAttributes(1);
@@ -185,7 +215,11 @@ class CypherFormatterIndentTest {
     }
 
     private List<CypherBlock> buildBlocks(StubAstNode root) {
-        List<Block> children = new CypherBlock(root, null, null, CypherIndents.none(), null, 4).buildChildren();
+        return buildBlocks(root, false);
+    }
+
+    private List<CypherBlock> buildBlocks(StubAstNode root, boolean useTabs) {
+        List<Block> children = new CypherBlock(root, null, null, CypherIndents.none(), null, 4, useTabs).buildChildren();
         List<CypherBlock> tokens = new ArrayList<>();
         for (Block child : children) {
             CypherBlock block = (CypherBlock) child;

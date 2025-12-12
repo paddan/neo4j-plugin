@@ -20,11 +20,13 @@ public class CypherFormattingModelBuilder implements FormattingModelBuilder {
         PsiElement element = formattingContext.getPsiElement();
         CodeStyleSettings settings = formattingContext.getCodeStyleSettings();
         SpacingBuilder spacingBuilder = createSpacingBuilder(settings);
-        int indentSize = resolveIndentSize(settings, element);
+        CommonCodeStyleSettings.IndentOptions indentOptions = settings.getIndentOptions(element.getContainingFile().getFileType());
+        int indentSize = resolveIndentSize(indentOptions);
+        boolean useTabs = indentOptions.USE_TAB_CHARACTER;
 
         ASTNode node = element.getNode();
         Block block = new CypherBlock(node, Wrap.createWrap(WrapType.NONE, false),
-                null, CypherIndents.none(), spacingBuilder, indentSize);
+                null, CypherIndents.none(), spacingBuilder, indentSize, useTabs);
         return FormattingModelProvider.createFormattingModelForPsiFile(element.getContainingFile(), block, settings);
     }
 
@@ -41,9 +43,8 @@ public class CypherFormattingModelBuilder implements FormattingModelBuilder {
                 .before(CypherTokenTypes.BRACE_CLOSE).spaces(1);
     }
 
-    private int resolveIndentSize(CodeStyleSettings settings, PsiElement element) {
-        CommonCodeStyleSettings.IndentOptions indentOptions = settings.getIndentOptions(element.getContainingFile().getFileType());
-        if (indentOptions.INDENT_SIZE > 0) {
+    private int resolveIndentSize(CommonCodeStyleSettings.IndentOptions indentOptions) {
+        if (indentOptions != null && indentOptions.INDENT_SIZE > 0) {
             return indentOptions.INDENT_SIZE;
         }
         return 4;

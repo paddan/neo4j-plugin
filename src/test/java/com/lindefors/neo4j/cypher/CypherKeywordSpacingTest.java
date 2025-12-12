@@ -51,7 +51,7 @@ class CypherKeywordSpacingTest {
                 StubAstNode.token(CypherTokenTypes.KEYWORD, "RETURN")
         );
 
-        CypherBlock parent = new CypherBlock(root, null, null, CypherIndents.none(), null, 4);
+        CypherBlock parent = new CypherBlock(root, null, null, CypherIndents.none(), null, 4, false);
         List<Block> children = parent.buildChildren();
         Spacing spacing = parent.getSpacing(null, children.get(0));
 
@@ -178,7 +178,7 @@ class CypherKeywordSpacingTest {
     }
 
     private Spacing spacingAt(StubAstNode root, int leftIndex, int rightIndex) {
-        CypherBlock parent = new CypherBlock(root, null, null, CypherIndents.none(), null, 4);
+        CypherBlock parent = new CypherBlock(root, null, null, CypherIndents.none(), null, 4, false);
         List<Block> children = parent.buildChildren();
         return parent.getSpacing(children.get(leftIndex), children.get(rightIndex));
     }

@@ -3,8 +3,10 @@ package com.lindefors.neo4j.cypher;
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.patterns.PlatformPatterns;
+import com.intellij.psi.PsiElement;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -24,6 +26,12 @@ public class CypherCompletionContributor extends CompletionContributor {
                     protected void addCompletions(@NotNull CompletionParameters parameters,
                                                   @NotNull ProcessingContext context,
                                                   @NotNull CompletionResultSet result) {
+                        PsiElement position = parameters.getPosition();
+                        PsiElement parent = position.getParent();
+                        if (isInCommentOrString(position) || isInCommentOrString(parent)) {
+                            return;
+                        }
+
                         // Add keywords
                         for (String keyword : KEYWORDS) {
                             result.addElement(LookupElementBuilder.create(keyword)
@@ -37,5 +45,13 @@ public class CypherCompletionContributor extends CompletionContributor {
                         }
                     }
                 });
+    }
+
+    private static boolean isInCommentOrString(@Nullable PsiElement element) {
+        if (element == null || element.getNode() == null) {
+            return false;
+        }
+        return element.getNode().getElementType() == CypherTokenTypes.COMMENT
+                || element.getNode().getElementType() == CypherTokenTypes.STRING;
     }
 }

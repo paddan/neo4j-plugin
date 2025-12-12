@@ -24,17 +24,20 @@ public class CypherBlock extends AbstractBlock {
     private final @Nullable SpacingBuilder spacingBuilder;
     private final Indent indent;
     private final int indentSize;
+    private final boolean useTabs;
 
     protected CypherBlock(@NotNull ASTNode node,
                           @Nullable Wrap wrap,
                           @Nullable Alignment alignment,
                           @NotNull Indent indent,
                           @Nullable SpacingBuilder spacingBuilder,
-                          int indentSize) {
+                          int indentSize,
+                          boolean useTabs) {
         super(node, wrap, alignment);
         this.spacingBuilder = spacingBuilder;
         this.indent = indent;
         this.indentSize = indentSize;
+        this.useTabs = useTabs;
     }
 
     @Override
@@ -52,7 +55,7 @@ public class CypherBlock extends AbstractBlock {
             }
             Indent childIndent = braceBalance > 0 ? indentForBraceDepth(braceBalance) : CypherIndents.none();
             Wrap childWrap = spacingBuilder == null ? null : Wrap.createWrap(WrapType.NONE, false);
-            blocks.add(new CypherBlock(child, childWrap, null, childIndent, spacingBuilder, indentSize));
+            blocks.add(new CypherBlock(child, childWrap, null, childIndent, spacingBuilder, indentSize, useTabs));
             if (child.getElementType() == CypherTokenTypes.BRACE_OPEN) {
                 braceBalance++;
             }
@@ -119,10 +122,13 @@ public class CypherBlock extends AbstractBlock {
         if (braceDepth <= 0) {
             return CypherIndents.none();
         }
-        int indentSpaces = Math.max(1, indentSize) * braceDepth;
-        if (braceDepth == 1 && indentSpaces == indentSize) {
+        if (braceDepth == 1) {
             return CypherIndents.normal();
         }
+        if (useTabs) {
+            return CypherIndents.continuationWithoutFirst();
+        }
+        int indentSpaces = Math.max(1, indentSize) * braceDepth;
         return Indent.getSpaceIndent(indentSpaces);
     }
 
