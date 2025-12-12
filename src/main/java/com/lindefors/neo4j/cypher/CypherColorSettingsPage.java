@@ -11,6 +11,9 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.Map;
 
+/**
+ * Exposes Cypher syntax elements to the IDE color settings UI with a short demo snippet.
+ */
 public class CypherColorSettingsPage implements ColorSettingsPage {
     private static final AttributesDescriptor[] DESCRIPTORS = new AttributesDescriptor[]{
             new AttributesDescriptor("Keyword", CypherSyntaxHighlighter.KEYWORD),

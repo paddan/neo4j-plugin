@@ -7,6 +7,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Supplies a new {@link CypherSyntaxHighlighter} instance for each file.
+ */
 public class CypherSyntaxHighlighterFactory extends SyntaxHighlighterFactory {
     @Override
     public @NotNull SyntaxHighlighter getSyntaxHighlighter(@Nullable Project project, @Nullable VirtualFile virtualFile) {

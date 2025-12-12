@@ -6,6 +6,9 @@ import com.intellij.psi.FileViewProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * PSI wrapper for Cypher files that wires the file type to the language.
+ */
 public class CypherPsiFile extends PsiFileBase {
     public CypherPsiFile(@NotNull FileViewProvider viewProvider) {
         super(viewProvider, CypherLanguage.INSTANCE);

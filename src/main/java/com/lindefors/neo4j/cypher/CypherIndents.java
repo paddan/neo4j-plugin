@@ -2,6 +2,9 @@ package com.lindefors.neo4j.cypher;
 
 import com.intellij.formatting.Indent;
 
+/**
+ * Centralizes commonly used indent types so they can be reused without reallocation.
+ */
 final class CypherIndents {
     private static final Indent NONE = Indent.getNoneIndent();
     private static final Indent NORMAL = Indent.getNormalIndent();

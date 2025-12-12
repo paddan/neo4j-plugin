@@ -7,6 +7,9 @@ import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Declares matching pairs for Cypher parentheses, brackets, and braces to drive editor brace matching.
+ */
 public class CypherBraceMatcher implements PairedBraceMatcher {
     private static final BracePair[] PAIRS = new BracePair[]{
             new BracePair(CypherTokenTypes.PAREN_OPEN, CypherTokenTypes.PAREN_CLOSE, false),

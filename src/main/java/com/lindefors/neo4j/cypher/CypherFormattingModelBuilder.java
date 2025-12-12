@@ -14,6 +14,10 @@ import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Builds IntelliJ formatting models for Cypher files using token-based spacing rules and simple
+ * brace-depth indentation. The model delegates spacing to {@link CypherBlock} for pattern-aware tweaks.
+ */
 public class CypherFormattingModelBuilder implements FormattingModelBuilder {
     @Override
     public @NotNull FormattingModel createModel(@NotNull FormattingContext formattingContext) {
@@ -30,6 +34,9 @@ public class CypherFormattingModelBuilder implements FormattingModelBuilder {
         return FormattingModelProvider.createFormattingModelForPsiFile(element.getContainingFile(), block, settings);
     }
 
+    /**
+     * Default spacing rules mirrored after Neo4j's reference style: operators spaced, punctuation tight.
+     */
     static SpacingBuilder createSpacingBuilder(CodeStyleSettings settings) {
         return new SpacingBuilder(settings, CypherLanguage.INSTANCE)
                 .around(CypherTokenTypes.OPERATOR).spaces(1)
@@ -43,6 +50,9 @@ public class CypherFormattingModelBuilder implements FormattingModelBuilder {
                 .before(CypherTokenTypes.BRACE_CLOSE).spaces(1);
     }
 
+    /**
+     * Uses IntelliJ indent settings when available, falling back to four spaces to match the bundled formatter.
+     */
     private int resolveIndentSize(CommonCodeStyleSettings.IndentOptions indentOptions) {
         if (indentOptions != null && indentOptions.INDENT_SIZE > 0) {
             return indentOptions.INDENT_SIZE;

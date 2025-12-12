@@ -11,6 +11,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Simple syntax highlighter that maps lexer token types to IntelliJ text attributes for Cypher.
+ */
 public class CypherSyntaxHighlighter extends SyntaxHighlighterBase {
     private static final Map<IElementType, TextAttributesKey> KEYS = new HashMap<>();
 

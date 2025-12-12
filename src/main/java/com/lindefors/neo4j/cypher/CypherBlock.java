@@ -20,6 +20,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+/**
+ * Formatting block that applies Cypher-aware spacing and indentation rules. Most spacing is delegated
+ * to the {@link SpacingBuilder}, but keyword clauses and relationship operators get custom handling
+ * to mirror typical Cypher formatting.
+ */
 public class CypherBlock extends AbstractBlock {
     private final @Nullable SpacingBuilder spacingBuilder;
     private final Indent indent;
@@ -40,6 +45,9 @@ public class CypherBlock extends AbstractBlock {
         this.useTabs = useTabs;
     }
 
+    /**
+     * Builds child blocks while tracking brace depth to assign indentation to nested maps or pattern braces.
+     */
     @Override
     protected List<Block> buildChildren() {
         List<Block> blocks = new ArrayList<>();
@@ -64,6 +72,10 @@ public class CypherBlock extends AbstractBlock {
         return blocks;
     }
 
+    /**
+     * Computes spacing between tokens, giving precedence to clause keywords, relationship operators,
+     * and brace blocks before deferring to the shared {@link SpacingBuilder}.
+     */
     @Override
     public @Nullable Spacing getSpacing(Block child1, @NotNull Block child2) {
         if (child1 == null) {
@@ -118,6 +130,9 @@ public class CypherBlock extends AbstractBlock {
         return indent;
     }
 
+    /**
+     * Chooses an indent style based on brace depth and whether tabs are in use.
+     */
     private Indent indentForBraceDepth(int braceDepth) {
         if (braceDepth <= 0) {
             return CypherIndents.none();
@@ -132,6 +147,10 @@ public class CypherBlock extends AbstractBlock {
         return Indent.getSpaceIndent(indentSpaces);
     }
 
+    /**
+     * Spacing adjustments for sequences of Cypher clause keywords, ensuring new clauses start on a new line
+     * and inline combinations (e.g., {@code OPTIONAL MATCH}) remain compact.
+     */
     private @Nullable Spacing keywordSpacing(Block left, Block right) {
         ASTNode rightNode = extractNode(right);
         if (rightNode == null || rightNode.getElementType() != CypherTokenTypes.KEYWORD) {
@@ -159,6 +178,9 @@ public class CypherBlock extends AbstractBlock {
         return null;
     }
 
+    /**
+     * Keeps relationship patterns tight (no spaces around {@code -[]->}) unless crossing pattern boundaries.
+     */
     private @Nullable Spacing relationshipSpacing(Block left, Block right) {
         ASTNode leftNode = extractNode(left);
         ASTNode rightNode = extractNode(right);
@@ -179,6 +201,9 @@ public class CypherBlock extends AbstractBlock {
         return null;
     }
 
+    /**
+     * Adds breathing room around code blocks inside braces while keeping empty or inline maps compact.
+     */
     private @Nullable Spacing braceSpacing(Block left, Block right) {
         ASTNode leftNode = extractNode(left);
         ASTNode rightNode = extractNode(right);
@@ -205,6 +230,9 @@ public class CypherBlock extends AbstractBlock {
         return null;
     }
 
+    /**
+     * Determines whether a brace pair contains Cypher clauses, in which case blank lines are preferred.
+     */
     private boolean isCodeBlockBrace(@NotNull ASTNode braceNode) {
         ASTNode openingBrace = braceNode.getElementType() == CypherTokenTypes.BRACE_OPEN
                 ? braceNode
@@ -256,6 +284,9 @@ public class CypherBlock extends AbstractBlock {
         return null;
     }
 
+    /**
+     * Scans forward until the closing brace to see if any clause keyword appears within the block.
+     */
     private boolean containsClauseKeyword(@Nullable ASTNode startExclusive, @NotNull ASTNode endExclusive) {
         ASTNode current = startExclusive;
         while (current != null && current != endExclusive) {

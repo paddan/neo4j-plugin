@@ -10,6 +10,11 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
+/**
+ * Minimal, hand-written lexer for Cypher that recognizes keywords, identifiers, parameters, comments,
+ * strings, punctuation, and simple operators. The lexer is single-state because Cypher does not require
+ * multi-state lexing for the subset the plugin supports.
+ */
 public class CypherLexer extends LexerBase {
     private static final Set<String> KEYWORDS = new HashSet<>(CypherTokenTypes.KEYWORDS);
 
@@ -67,6 +72,11 @@ public class CypherLexer extends LexerBase {
         return endOffset;
     }
 
+    /**
+     * Advances the internal cursor to the next token. The implementation intentionally keeps the
+     * precedence ordered (comments/strings → numbers → parameters → identifiers → punctuation → operators)
+     * to avoid misclassifying shorter tokens when longer ones are possible.
+     */
     private void locateToken() {
         if (skipWhitespace()) {
             return;
@@ -207,6 +217,9 @@ public class CypherLexer extends LexerBase {
         tokenEnd = position;
     }
 
+    /**
+     * Lexes parameters in both {@code $name} and APOC-style {@code $(expression)} forms.
+     */
     private void scanParameter() {
         position++; // consume $
         if (position < endOffset && buffer.charAt(position) == '(') {
@@ -229,6 +242,10 @@ public class CypherLexer extends LexerBase {
         tokenEnd = position;
     }
 
+    /**
+     * Legacy parameter syntax uses {@code { name }}. This method only consumes the token when a full
+     * identifier is wrapped in braces to avoid swallowing stray braces.
+     */
     private boolean scanLegacyParameter() {
         int i = position + 1;
         while (i < endOffset && Character.isWhitespace(buffer.charAt(i))) {
@@ -254,6 +271,10 @@ public class CypherLexer extends LexerBase {
         return true;
     }
 
+    /**
+     * Reads identifiers and keywords, handling backtick-quoted identifiers and promoting matching
+     * words to the {@link CypherTokenTypes#KEYWORD} token when appropriate.
+     */
     private void scanIdentifier() {
         boolean quoted = buffer.charAt(position) == '`';
         position++;

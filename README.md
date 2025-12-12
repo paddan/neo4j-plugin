@@ -16,9 +16,9 @@ A lightweight IntelliJ IDEA plugin that adds basic support for Neo4j Cypher file
 
 ## Install the Packaged Plugin
 1) Build the ZIP with `./gradlew buildPlugin` (or download the latest release from GitHub).
-2) If you download the Actions artifact: There's a zip-file `neo4j-plugin-1.0.4.zip` inside the downloaded `neo4j-plugin.zip`, install that as a plugin in intellij.
+2) If you download the Actions artifact: There's a zip-file `neo4j-plugin-1.0.5.zip` inside the downloaded `neo4j-plugin.zip`, install that as a plugin in intellij.
 3) In IntelliJ IDEA: `Settings/Preferences > Plugins > ⚙ > Install Plugin from Disk...`.
-4) Select the plugin ZIP (e.g., `build/distributions/neo4j-plugin-1.0.4.zip` or the downloaded `neo4j-plugin-1.0.4.zip`), install, and restart the IDE.
+4) Select the plugin ZIP (e.g., `build/distributions/neo4j-plugin-1.0.5.zip` or the downloaded `neo4j-plugin-1.0.5.zip`), install, and restart the IDE.
 
 ## Usage
 - Open or create `.cyp` / `.cypher` files to get Cypher syntax highlighting and formatting support.

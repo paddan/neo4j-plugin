@@ -13,6 +13,10 @@ import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Registers the lexer/parser pair for Cypher along with token sets that inform IntelliJ about
+ * whitespace, comments, and string literal handling.
+ */
 public class CypherParserDefinition implements ParserDefinition {
     private static final IFileElementType FILE = new IFileElementType(CypherLanguage.INSTANCE);
     private static final TokenSet WHITE_SPACES = TokenSet.create(TokenType.WHITE_SPACE);

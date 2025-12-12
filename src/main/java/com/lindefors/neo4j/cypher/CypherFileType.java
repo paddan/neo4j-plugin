@@ -7,6 +7,9 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
+/**
+ * Registers the Cypher file type so IntelliJ can associate `.cyp`/`.cypher` files with this plugin.
+ */
 public class CypherFileType extends LanguageFileType {
     public static final CypherFileType INSTANCE = new CypherFileType();
 

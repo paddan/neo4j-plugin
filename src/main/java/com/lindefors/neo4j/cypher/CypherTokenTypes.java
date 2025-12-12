@@ -5,6 +5,10 @@ import com.intellij.psi.tree.IElementType;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Defines the token types produced by {@link CypherLexer} and reused throughout highlighting, formatting,
+ * and completion logic.
+ */
 public interface CypherTokenTypes {
     List<String> KEYWORDS = Arrays.asList(
             "MATCH", "OPTIONAL", "WHERE", "RETURN", "WITH", "UNWIND",

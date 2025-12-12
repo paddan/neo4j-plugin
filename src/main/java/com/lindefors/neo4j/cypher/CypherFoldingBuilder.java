@@ -14,7 +14,14 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
+/**
+ * Provides basic folding for Cypher files by pairing parentheses, brackets, and braces when their
+ * contents span multiple lines.
+ */
 public class CypherFoldingBuilder extends FoldingBuilderEx {
+    /**
+     * Builds fold regions by walking tokens in document order and pairing matching delimiters with a stack.
+     */
     @Override
     public FoldingDescriptor @NotNull [] buildFoldRegions(@NotNull PsiElement root,
                                                           @NotNull Document document,
@@ -83,6 +90,9 @@ public class CypherFoldingBuilder extends FoldingBuilderEx {
                 || (opening == CypherTokenTypes.PAREN_OPEN && closing == CypherTokenTypes.PAREN_CLOSE);
     }
 
+    /**
+     * Ensures folding only hides ranges that actually span multiple lines.
+     */
     private boolean isMultiline(Document document, ASTNode opening, ASTNode closing) {
         int startLine = document.getLineNumber(opening.getTextRange().getStartOffset());
         int endLine = document.getLineNumber(closing.getTextRange().getEndOffset());
