@@ -86,7 +86,23 @@ public class CypherBlock extends AbstractBlock {
 
     @Override
     public @NotNull ChildAttributes getChildAttributes(int newChildIndex) {
-        return new ChildAttributes(CypherIndents.continuationWithoutFirst(), null);
+        int braceBalance = 0;
+        List<Block> subBlocks = getSubBlocks();
+        int scanLimit = Math.min(newChildIndex, subBlocks.size());
+        for (int i = 0; i < scanLimit; i++) {
+            ASTNode childNode = extractNode(subBlocks.get(i));
+            if (childNode == null) {
+                continue;
+            }
+            IElementType type = childNode.getElementType();
+            if (type == CypherTokenTypes.BRACE_OPEN) {
+                braceBalance++;
+            } else if (type == CypherTokenTypes.BRACE_CLOSE && braceBalance > 0) {
+                braceBalance--;
+            }
+        }
+        Indent childIndent = braceBalance > 0 ? indentForBraceDepth(braceBalance) : CypherIndents.none();
+        return new ChildAttributes(childIndent, null);
     }
 
     @Override

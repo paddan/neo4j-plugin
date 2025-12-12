@@ -1,6 +1,7 @@
 package com.lindefors.neo4j.cypher;
 
 import com.intellij.formatting.Block;
+import com.intellij.formatting.ChildAttributes;
 import com.intellij.formatting.Indent;
 import com.intellij.formatting.Formatter;
 import com.intellij.formatting.FormatterImpl;
@@ -134,6 +135,53 @@ class CypherFormatterIndentTest {
 
         assertEquals("}", tokens.get(7).getNode().getText());
         assertEquals(Indent.Type.NONE, tokens.get(7).getIndent().getType(), "Outer closing brace returns to base indent");
+    }
+
+    @Test
+    void keepsBaseIndentBetweenTopLevelKeywords() {
+        CypherBlock block = new CypherBlock(
+                StubAstNode.root(
+                        StubAstNode.token(CypherTokenTypes.KEYWORD, "MATCH"),
+                        StubAstNode.token(CypherTokenTypes.KEYWORD, "RETURN")
+                ),
+                null,
+                null,
+                CypherIndents.none(),
+                null,
+                4
+        );
+
+        ChildAttributes attributes = block.getChildAttributes(1);
+
+        assertEquals(Indent.Type.NONE, attributes.getChildIndent().getType(),
+                "New lines between top-level keywords should not add indentation");
+    }
+
+    @Test
+    void indentsNewLinesInsideBraces() {
+        CypherBlock block = new CypherBlock(
+                StubAstNode.root(
+                        StubAstNode.token(CypherTokenTypes.BRACE_OPEN, "{"),
+                        StubAstNode.token(CypherTokenTypes.KEYWORD, "MATCH"),
+                        StubAstNode.token(CypherTokenTypes.BRACE_CLOSE, "}")
+                ),
+                null,
+                null,
+                CypherIndents.none(),
+                null,
+                4
+        );
+
+        ChildAttributes afterOpeningBrace = block.getChildAttributes(1);
+        ChildAttributes afterIndentedContent = block.getChildAttributes(2);
+        ChildAttributes afterClosingBrace = block.getChildAttributes(3);
+
+        assertEquals(Indent.Type.NORMAL, afterOpeningBrace.getChildIndent().getType(),
+                "Content directly inside braces should be indented");
+        assertEquals(Indent.Type.NORMAL, afterIndentedContent.getChildIndent().getType(),
+                "Indentation stays while inside brace scope");
+        assertEquals(Indent.Type.NONE, afterClosingBrace.getChildIndent().getType(),
+                "Indentation resets after closing brace");
     }
 
     private List<CypherBlock> buildBlocks(StubAstNode root) {

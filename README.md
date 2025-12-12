@@ -1,8 +1,8 @@
-# Neo4j Cypher Syntax Highlighter, Completion and Formatter (IntelliJ Plugin)
+# Neo4j Cypher Syntax Highlighter, Code Completion and Formatter (IntelliJ Plugin)
 
 [![Latest Release](https://img.shields.io/github/v/release/paddan/neo4j-plugin?label=Download&logo=github)](https://github.com/paddan/neo4j-plugin/releases/latest)
 
-A lightweight IntelliJ IDEA plugin that adds basic support for Neo4j Cypher files (`.cyp`, `.cypher`): file type registration, syntax highlighting, syntax completion and a simple formatter.
+A lightweight IntelliJ IDEA plugin that adds basic support for Neo4j Cypher files (`.cyp`, `.cypher`): file type registration, syntax highlighting, code completion and a simple formatter.
 
 ## Requirements
 - IntelliJ IDEA 2024.2+ (IU; compatible up to 253.* per `untilBuild`)
@@ -16,9 +16,9 @@ A lightweight IntelliJ IDEA plugin that adds basic support for Neo4j Cypher file
 
 ## Install the Packaged Plugin
 1) Build the ZIP with `./gradlew buildPlugin` (or download the latest release from GitHub).
-2) If you download the Actions artifact: There's a zip-file `neo4j-plugin-1.0.1.zip` inside the downloaded `neo4j-plugin.zip`, install that as a plugin in intellij.
+2) If you download the Actions artifact: There's a zip-file `neo4j-plugin-1.0.2.zip` inside the downloaded `neo4j-plugin.zip`, install that as a plugin in intellij.
 3) In IntelliJ IDEA: `Settings/Preferences > Plugins > ⚙ > Install Plugin from Disk...`.
-4) Select the plugin ZIP (e.g., `build/distributions/neo4j-plugin-1.0.1.zip` or the downloaded `neo4j-plugin-1.0.1.zip`), install, and restart the IDE.
+4) Select the plugin ZIP (e.g., `build/distributions/neo4j-plugin-1.0.2.zip` or the downloaded `neo4j-plugin-1.0.2.zip`), install, and restart the IDE.
 
 ## Usage
 - Open or create `.cyp` / `.cypher` files to get Cypher syntax highlighting and formatting support.
@@ -27,4 +27,4 @@ A lightweight IntelliJ IDEA plugin that adds basic support for Neo4j Cypher file
 ## Developing
 - Use `./gradlew runIde` for rapid iteration in a sandbox.
 - Update plugin metadata in `src/main/resources/META-INF/plugin.xml`.
-- Java sources live in `src/main/java/com/lindefors/neo4j/cypher`.
+- Java sources live in `src/main/java/com/lindefors/neo4j/cypher`.1

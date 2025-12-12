@@ -6,4 +6,5 @@ CALL {
         MATCH (x)-->(y)
     }
 }
-RETURN DISTINCT friend.name, friend.age, c ORDER BY friend.age DESC LIMIT 10;
+RETURN
+DISTINCT friend.name, friend.age, c ORDER BY friend.age DESC LIMIT 10;
