@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -27,6 +28,11 @@ public class CypherCompletionContributor extends CompletionContributor {
             "AND", "OR", "XOR", "NOT", "IN", "IS", "CONTAINS", "STARTS", "ENDS"
     );
     private static final Set<String> NODE_PATTERN_KEYWORDS = Set.of("MATCH", "MERGE", "CREATE", "OPTIONAL");
+    private static final Set<String> VALUE_KEYWORDS = Set.of(
+            "RETURN", "WITH", "WHERE", "ORDER", "BY", "SET", "REMOVE",
+            "DELETE", "DETACH", "UNWIND", "FOREACH", "YIELD"
+    );
+    private static final Set<String> CLAUSE_BOUNDARY_KEYWORDS = Set.of("UNION", "CALL");
 
     public CypherCompletionContributor() {
         extend(CompletionType.BASIC, PlatformPatterns.psiElement().withLanguage(CypherLanguage.INSTANCE),
@@ -42,6 +48,12 @@ public class CypherCompletionContributor extends CompletionContributor {
                         }
                         if (isInsideNodeOrRelationshipPattern(position)) {
                             return;
+                        }
+
+                        if (isValueContext(position)) {
+                            for (String identifier : collectVisibleIdentifiers(position)) {
+                                result.addElement(LookupElementBuilder.create(identifier));
+                            }
                         }
 
                         // Add keywords
@@ -227,5 +239,120 @@ public class CypherCompletionContributor extends CompletionContributor {
             return false;
         }
         return element.getText().contains("-");
+    }
+
+    /**
+     * Determines whether completion is invoked in a clause that consumes values (RETURN/WITH/WHERE/etc.).
+     * Walks backwards until it finds a clause keyword or hits a statement boundary.
+     */
+    private static boolean isValueContext(@NotNull PsiElement position) {
+        PsiElement current = PsiTreeUtil.prevVisibleLeaf(position);
+        while (current != null && current.getNode() != null) {
+            IElementType type = current.getNode().getElementType();
+            if (type == CypherTokenTypes.KEYWORD) {
+                String keyword = current.getText().toUpperCase(Locale.ENGLISH);
+                if (VALUE_KEYWORDS.contains(keyword)) {
+                    return true;
+                }
+                if (CLAUSE_BOUNDARY_KEYWORDS.contains(keyword)) {
+                    return false;
+                }
+            }
+            if (type == CypherTokenTypes.SEMICOLON) {
+                return false;
+            }
+            current = PsiTreeUtil.prevVisibleLeaf(current);
+        }
+        return false;
+    }
+
+    /**
+     * Collects identifiers that are likely to be in scope for value clauses by scanning backwards until
+     * a statement boundary. Brace blocks are skipped when the caret sits outside them to avoid leaking
+     * subquery-local identifiers.
+     */
+    private static List<String> collectVisibleIdentifiers(@NotNull PsiElement position) {
+        LinkedHashSet<String> identifiers = new LinkedHashSet<>();
+        PsiElement current = PsiTreeUtil.prevVisibleLeaf(position);
+        while (current != null && current.getNode() != null) {
+            IElementType type = current.getNode().getElementType();
+            if (type == CypherTokenTypes.BRACE_CLOSE) {
+                current = skipBraceSection(current);
+                continue;
+            }
+            if (type == CypherTokenTypes.SEMICOLON) {
+                break;
+            }
+            if (type == CypherTokenTypes.KEYWORD) {
+                String keyword = current.getText().toUpperCase(Locale.ENGLISH);
+                if (CLAUSE_BOUNDARY_KEYWORDS.contains(keyword)) {
+                    break;
+                }
+            }
+            if (isValueIdentifier(current)) {
+                identifiers.add(current.getText());
+            }
+            current = PsiTreeUtil.prevVisibleLeaf(current);
+        }
+        return List.copyOf(identifiers);
+    }
+
+    /**
+     * Steps back to the token before a balanced {...} block. Used to ignore subquery/property maps when
+     * completion is triggered outside of them.
+     */
+    @Nullable
+    private static PsiElement skipBraceSection(@NotNull PsiElement closingBrace) {
+        int balance = 1;
+        PsiElement current = PsiTreeUtil.prevLeaf(closingBrace);
+        while (current != null) {
+            if (current.getNode() != null) {
+                IElementType type = current.getNode().getElementType();
+                if (type == CypherTokenTypes.BRACE_CLOSE) {
+                    balance++;
+                } else if (type == CypherTokenTypes.BRACE_OPEN) {
+                    balance--;
+                    if (balance == 0) {
+                        return PsiTreeUtil.prevVisibleLeaf(current);
+                    }
+                }
+            }
+            current = PsiTreeUtil.prevLeaf(current);
+        }
+        return current;
+    }
+
+    /**
+     * Heuristic for variable-like identifiers: skips labels (preceded by colon/dot) and property keys inside maps.
+     */
+    private static boolean isValueIdentifier(@NotNull PsiElement element) {
+        if (element.getNode() == null || element.getNode().getElementType() != CypherTokenTypes.IDENTIFIER) {
+            return false;
+        }
+        PsiElement previous = PsiTreeUtil.prevVisibleLeaf(element);
+        if (previous != null && previous.getNode() != null) {
+            IElementType type = previous.getNode().getElementType();
+            if (type == CypherTokenTypes.COLON || type == CypherTokenTypes.DOT) {
+                return false;
+            }
+        }
+
+        PsiElement next = PsiTreeUtil.nextVisibleLeaf(element);
+        if (next != null && next.getNode() != null && next.getNode().getElementType() == CypherTokenTypes.COLON) {
+            PsiElement brace = findNearestUnclosedOpening(element, CypherTokenTypes.BRACE_OPEN, CypherTokenTypes.BRACE_CLOSE);
+            return brace == null || isSubqueryBrace(brace);
+        }
+        return true;
+    }
+
+    private static boolean isSubqueryBrace(@NotNull PsiElement braceOpen) {
+        PsiElement beforeBrace = PsiTreeUtil.prevVisibleLeaf(braceOpen);
+        if (beforeBrace == null || beforeBrace.getNode() == null) {
+            return false;
+        }
+        if (beforeBrace.getNode().getElementType() != CypherTokenTypes.KEYWORD) {
+            return false;
+        }
+        return "CALL".equalsIgnoreCase(beforeBrace.getText());
     }
 }
