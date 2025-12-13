@@ -13,6 +13,37 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class CypherLexerParameterTest {
     @Test
+    void lexesSingleQuotedStringWithDoubledQuoteEscape() {
+        List<Token> tokens = lex("'Bob''s'");
+
+        assertEquals(1, tokens.size(), "Single string token expected");
+        Token string = tokens.get(0);
+        assertEquals(CypherTokenTypes.STRING, string.type);
+        assertEquals("'Bob''s'", string.text);
+    }
+
+    @Test
+    void lexesUnterminatedStringAsSingleTokenToEof() {
+        List<Token> tokens = lex("'unterminated");
+
+        assertEquals(1, tokens.size(), "Single string token expected");
+        Token string = tokens.get(0);
+        assertEquals(CypherTokenTypes.STRING, string.type);
+        assertEquals("'unterminated", string.text);
+    }
+
+    @Test
+    void lexesNewerKeywords() {
+        List<Token> tokens = lex("PROFILE MATCH (n) RETURN n");
+
+        assertEquals(CypherTokenTypes.KEYWORD, tokens.get(0).type);
+        assertEquals("PROFILE", tokens.get(0).text);
+        assertEquals(CypherTokenTypes.KEYWORD, tokens.get(1).type);
+        assertEquals("MATCH", tokens.get(1).text);
+    }
+
+
+    @Test
     void lexesSimpleDollarParameter() {
         List<Token> tokens = lex("$name");
 

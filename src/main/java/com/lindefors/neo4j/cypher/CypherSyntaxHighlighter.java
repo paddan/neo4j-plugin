@@ -26,7 +26,7 @@ public class CypherSyntaxHighlighter extends SyntaxHighlighterBase {
     public static final TextAttributesKey STRING =
             TextAttributesKey.createTextAttributesKey("CYPHER_STRING", DefaultLanguageHighlighterColors.STRING);
     public static final TextAttributesKey COMMENT =
-            TextAttributesKey.createTextAttributesKey("CYPHER_COMMENT", DefaultLanguageHighlighterColors.DOC_COMMENT);
+            TextAttributesKey.createTextAttributesKey("CYPHER_COMMENT", DefaultLanguageHighlighterColors.LINE_COMMENT);
     public static final TextAttributesKey OPERATOR =
             TextAttributesKey.createTextAttributesKey("CYPHER_OPERATOR", DefaultLanguageHighlighterColors.OPERATION_SIGN);
     public static final TextAttributesKey PARENTHESES =

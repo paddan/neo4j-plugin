@@ -1,1 +1,1 @@
-MATCH (n)-[:F]
+MATCH (n:Node)-[:Link]->() RETURN n

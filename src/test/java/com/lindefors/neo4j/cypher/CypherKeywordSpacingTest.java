@@ -13,9 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Field;
 import java.util.List;
-import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -196,28 +194,32 @@ class CypherKeywordSpacingTest {
     }
 
     private int lineFeeds(@NotNull Spacing spacing) {
-        return intField(spacing, "linefeed");
+        return intFromString(spacing, "linefeed", "linefeeds", "linefeedCount");
     }
 
     private int minSpaces(@NotNull Spacing spacing) {
-        return intField(spacing, "minspaces");
+        return intFromString(spacing, "minspaces", "minSpaces");
     }
 
     private int maxSpaces(@NotNull Spacing spacing) {
-        return intField(spacing, "maxspaces");
+        return intFromString(spacing, "maxspaces", "maxSpaces");
     }
 
-    private int intField(@NotNull Spacing spacing, @NotNull String identifierPart) {
-        for (Field field : spacing.getClass().getDeclaredFields()) {
-            if (field.getName().toLowerCase(Locale.ENGLISH).contains(identifierPart)) {
-                try {
-                    field.setAccessible(true);
-                    return field.getInt(spacing);
-                } catch (IllegalAccessException e) {
-                    throw new AssertionError("Unable to read spacing field: " + field.getName(), e);
+    private int intFromString(@NotNull Spacing spacing, @NotNull String... keys) {
+        // Spacing has no stable public getters across platform versions.
+        // We use its string representation, but accept multiple common key spellings.
+        String asString = spacing.toString();
+        if (asString != null) {
+            for (String key : keys) {
+                java.util.regex.Matcher m = java.util.regex.Pattern
+                        .compile("(?i)" + java.util.regex.Pattern.quote(key) + "=(\\d+)")
+                        .matcher(asString);
+                if (m.find()) {
+                    return Integer.parseInt(m.group(1));
                 }
             }
         }
-        throw new AssertionError("Spacing is missing expected field containing '" + identifierPart + "'");
+        throw new AssertionError("Unable to extract any of " + java.util.Arrays.toString(keys)
+                + " from Spacing.toString(): " + asString);
     }
 }

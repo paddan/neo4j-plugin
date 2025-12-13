@@ -29,11 +29,11 @@ public class CypherFoldingBuilder extends FoldingBuilderEx {
         List<FoldingDescriptor> descriptors = new ArrayList<>();
         Deque<ASTNode> stack = new ArrayDeque<>();
 
-        for (ASTNode node = root.getNode().getFirstChildNode(); node != null; node = node.getTreeNext()) {
+        walkAst(root.getNode(), node -> {
             IElementType type = node.getElementType();
             if (isOpening(type)) {
                 stack.push(node);
-                continue;
+                return;
             }
 
             if (isClosing(type) && !stack.isEmpty()) {
@@ -47,7 +47,7 @@ public class CypherFoldingBuilder extends FoldingBuilderEx {
                     }
                 }
             }
-        }
+        });
 
         return descriptors.toArray(FoldingDescriptor[]::new);
     }
@@ -70,6 +70,13 @@ public class CypherFoldingBuilder extends FoldingBuilderEx {
     @Override
     public boolean isCollapsedByDefault(@NotNull ASTNode node) {
         return false;
+    }
+
+    private void walkAst(@NotNull ASTNode node, @NotNull java.util.function.Consumer<ASTNode> visitor) {
+        for (ASTNode child = node.getFirstChildNode(); child != null; child = child.getTreeNext()) {
+            visitor.accept(child);
+            walkAst(child, visitor);
+        }
     }
 
     private boolean isOpening(IElementType type) {

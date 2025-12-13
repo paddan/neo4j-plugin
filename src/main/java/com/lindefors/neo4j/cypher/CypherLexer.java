@@ -6,7 +6,6 @@ import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
@@ -16,7 +15,7 @@ import java.util.Set;
  * multi-state lexing for the subset the plugin supports.
  */
 public class CypherLexer extends LexerBase {
-    private static final Set<String> KEYWORDS = new HashSet<>(CypherTokenTypes.KEYWORDS);
+    private static final Set<String> KEYWORDS = CypherTokenTypes.KEYWORDS;
 
     private CharSequence buffer = "";
     private int endOffset;
@@ -183,17 +182,23 @@ public class CypherLexer extends LexerBase {
     }
 
     private void scanString(char quote) {
-        position++;
+        // Cypher strings:
+        // - Standard strings use single quotes and escape a quote by doubling it: 'Bob''s'
+        // - Backslash escaping is not generally used in Cypher, so we avoid treating '\\' as an escape.
+        // - We still support double quotes here because users may paste non-standard Cypher or older dialects.
+        position++; // consume opening quote
         while (position < endOffset) {
             char c = buffer.charAt(position);
-            if (c == '\\' && position + 1 < endOffset) {
-                position += 2;
-                continue;
-            }
-            position++;
             if (c == quote) {
+                // Handle doubled quote escape (e.g., '' inside a single-quoted string)
+                if (position + 1 < endOffset && buffer.charAt(position + 1) == quote) {
+                    position += 2;
+                    continue;
+                }
+                position++; // consume closing quote
                 break;
             }
+            position++;
         }
         tokenType = CypherTokenTypes.STRING;
         tokenEnd = position;
@@ -357,7 +362,7 @@ public class CypherLexer extends LexerBase {
 
     private boolean operatorChar(char c) {
         return switch (c) {
-            case '+', '-', '*', '/', '=', '<', '>', '&', '|', '!' -> true;
+            case '+', '-', '*', '/', '=', '<', '>', '&', '|', '!', '%', '^' -> true;
             default -> false;
         };
     }

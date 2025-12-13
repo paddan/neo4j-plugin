@@ -15,8 +15,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import static com.lindefors.neo4j.cypher.CypherTokenTypes.KEYWORDS;
-
 /**
  * Provides lightweight Cypher completions (keywords/operators) while avoiding noisy suggestions
  * inside structural graph patterns such as nodes {@code (n:Label)} or relationships {@code -[r:TYPE]->}.
@@ -47,7 +45,7 @@ public class CypherCompletionContributor extends CompletionContributor {
                         }
 
                         // Add keywords
-                        for (String keyword : KEYWORDS) {
+                        for (String keyword : CypherTokenTypes.KEYWORDS) {
                             result.addElement(LookupElementBuilder.create(keyword)
                                     .withCaseSensitivity(false));
                         }
