@@ -10,7 +10,6 @@ import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -23,16 +22,20 @@ import java.util.Set;
  * fast bail-outs over exhaustive accuracy.
  */
 public class CypherCompletionContributor extends CompletionContributor {
-    private static final List<String> OPERATORS = Arrays.asList(
+    private static final List<String> OPERATORS = List.of(
             "=", "<>", "<", ">", "<=", ">=", "+", "-", "*", "/", "%", "^",
-            "AND", "OR", "XOR", "NOT", "IN", "IS", "CONTAINS", "STARTS", "ENDS"
+            "AND", "OR", "XOR", "NOT",
+            "IN", "IS", "IS NULL", "IS NOT NULL",
+            "CONTAINS", "STARTS WITH", "ENDS WITH", "=~",
+            "IS NORMALIZED", "IS NOT NORMALIZED",
+            "IS NFC NORMALIZED", "IS NFD NORMALIZED"
     );
     private static final Set<String> NODE_PATTERN_KEYWORDS = Set.of("MATCH", "MERGE", "CREATE", "OPTIONAL");
     private static final Set<String> VALUE_KEYWORDS = Set.of(
             "RETURN", "WITH", "WHERE", "ORDER", "BY", "SET", "REMOVE",
-            "DELETE", "DETACH", "UNWIND", "FOREACH", "YIELD"
+            "DELETE", "DETACH", "UNWIND", "FOREACH", "YIELD", "LET"
     );
-    private static final Set<String> CLAUSE_BOUNDARY_KEYWORDS = Set.of("UNION", "CALL");
+    private static final Set<String> CLAUSE_BOUNDARY_KEYWORDS = Set.of("UNION", "CALL", "NEXT");
 
     public CypherCompletionContributor() {
         extend(CompletionType.BASIC, PlatformPatterns.psiElement().withLanguage(CypherLanguage.INSTANCE),

@@ -29,8 +29,9 @@ public class CypherFormattingModelBuilder implements FormattingModelBuilder {
         boolean useTabs = indentOptions.USE_TAB_CHARACTER;
 
         ASTNode node = element.getNode();
+        CypherBlock.GroupLayout groupLayout = CypherBlock.GroupLayout.forRoot(node);
         Block block = new CypherBlock(node, Wrap.createWrap(WrapType.NONE, false),
-                null, CypherIndents.none(), spacingBuilder, indentSize, useTabs);
+                null, CypherIndents.none(), spacingBuilder, indentSize, useTabs, groupLayout);
         return FormattingModelProvider.createFormattingModelForPsiFile(element.getContainingFile(), block, settings);
     }
 
@@ -45,9 +46,7 @@ public class CypherFormattingModelBuilder implements FormattingModelBuilder {
                 .before(CypherTokenTypes.PAREN_CLOSE).spaces(0)
                 .after(CypherTokenTypes.PAREN_OPEN).spaces(0)
                 .around(CypherTokenTypes.COLON).spaces(0)
-                .before(CypherTokenTypes.SEMICOLON).spaces(0)
-                .after(CypherTokenTypes.BRACE_OPEN).spaces(1)
-                .before(CypherTokenTypes.BRACE_CLOSE).spaces(1);
+                .before(CypherTokenTypes.SEMICOLON).spaces(0);
     }
 
     /**

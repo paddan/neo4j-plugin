@@ -2,6 +2,9 @@ package com.lindefors.neo4j.cypher;
 
 import com.intellij.psi.tree.IElementType;
 
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -17,25 +20,48 @@ public final class CypherTokenTypes {
      *
      * <p>Keep this in sync with keyword-based editor features (completion and formatter heuristics).
      */
-    public static final Set<String> KEYWORDS = Set.of(
+    public static final Set<String> KEYWORDS = Collections.unmodifiableSet(new LinkedHashSet<>(List.of(
             // Core clauses
-            "MATCH", "OPTIONAL", "WHERE", "RETURN", "WITH", "UNWIND",
-            "CREATE", "MERGE", "DELETE", "DETACH", "SET", "REMOVE",
-            "FOREACH", "LOAD", "CSV", "FROM", "HEADERS", "CALL", "YIELD",
-            "USE",
-
-            // Projection / ordering
-            "AS", "ORDER", "BY", "SKIP", "LIMIT", "ASC", "DESC",
-            "UNION", "ALL", "DISTINCT",
-
-            // Schema / planning / misc
-            "ON", "USING", "INDEX", "CONSTRAINT", "EXISTS",
+            "USE", "MATCH", "OPTIONAL", "WHERE", "FILTER", "RETURN", "WITH", "LET",
+            "UNWIND", "CREATE", "MERGE", "DELETE", "DETACH", "SET", "REMOVE",
+            "FOREACH", "CALL", "YIELD", "LOAD", "CSV", "HEADERS", "FIELDTERMINATOR", "FROM",
+            "ORDER", "BY", "SKIP", "LIMIT", "ASC", "DESC",
+            "UNION", "ALL", "DISTINCT", "AS",
             "PROFILE", "EXPLAIN",
-            "SHOW", "TERMINATE",
 
-            // Literals / functions (limited)
-            "TRUE", "FALSE", "NULL", "COUNT"
-    );
+            // Conditional / sequential queries
+            "CASE", "WHEN", "THEN", "ELSE", "END", "NEXT", "FINISH",
+
+            // Subquery batching
+            "IN", "TRANSACTION", "TRANSACTIONS", "CONCURRENT", "OF", "ROWS", "ROW",
+            "ON", "ERROR", "CONTINUE", "RETRY", "STATUS", "REPORT",
+
+            // Predicates and operators
+            "AND", "OR", "XOR", "NOT", "IS", "STARTS", "ENDS", "CONTAINS",
+            "TRUE", "FALSE", "NULL", "EXISTS", "COUNT",
+            "NORMALIZED", "NFC", "NFD", "NFKC", "NFKD",
+
+            // Pattern options and path finding
+            "SHORTEST", "ANY", "GROUPS", "REPEATABLE", "ELEMENTS",
+
+            // Schema / indexes / constraints
+            "INDEX", "INDEXES", "RANGE", "TEXT", "POINT", "LOOKUP", "VECTOR", "FULLTEXT",
+            "OPTIONS", "EACH", "FOR", "USING",
+            "CONSTRAINT", "CONSTRAINTS", "REQUIRE", "UNIQUE", "KEY",
+            "NODE", "RELATIONSHIP",
+
+            // Administrative commands and privileges
+            "SHOW", "TERMINATE", "STOP", "START", "GRANT", "DENY", "REVOKE",
+            "PRIVILEGE", "PRIVILEGES", "IMMUTABLE", "SUPPORTED",
+            "DATABASE", "DATABASES", "DEFAULT", "HOME", "COMPOSITE", "ALIAS", "ALIASES",
+            "SERVER", "SERVERS", "USER", "USERS", "ROLE", "ROLES",
+            "DBMS", "GRAPH", "DATA", "MANAGEMENT", "ACCESS", "READ", "WRITE", "ONLY",
+            "IF", "EXISTS", "REPLACE", "CASCADE", "ENABLE", "REALLOCATE", "DEALLOCATE",
+            "PASSWORD", "ACTIVE", "SUSPENDED", "LANGUAGE", "CYPHER", "VERSION",
+            "PRIMARY", "SECONDARIES", "TOPOLOGY", "EXECUTE", "COPY", "CURRENT", "COMMANDS",
+            "FUNCTIONS", "PROCEDURES", "SETTINGS", "BUILT", "EXECUTABLE", "POPULATED",
+            "TO", "FROM", "AT"
+    )));
 
     public static final IElementType KEYWORD = new IElementType("KEYWORD", CypherLanguage.INSTANCE);
     public static final IElementType IDENTIFIER = new IElementType("IDENTIFIER", CypherLanguage.INSTANCE);

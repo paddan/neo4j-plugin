@@ -70,7 +70,7 @@ class CypherFormatterIndentTest {
     void resetsIndentWhenClosingBraceAppears() {
         StubAstNode root = StubAstNode.root(
                 StubAstNode.token(CypherTokenTypes.BRACE_OPEN, "{"),
-                StubAstNode.token(CypherTokenTypes.KEYWORD, "INNER"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "MATCH"),
                 StubAstNode.token(CypherTokenTypes.BRACE_CLOSE, "}"),
                 StubAstNode.token(CypherTokenTypes.KEYWORD, "AFTER")
         );
@@ -80,7 +80,7 @@ class CypherFormatterIndentTest {
         assertEquals("{", tokens.get(0).getNode().getText());
         assertEquals(Indent.Type.NONE, tokens.get(0).getIndent().getType(), "Opening brace stays at base indent");
 
-        assertEquals("INNER", tokens.get(1).getNode().getText());
+        assertEquals("MATCH", tokens.get(1).getNode().getText());
         assertEquals(Indent.Type.NORMAL, tokens.get(1).getIndent().getType(), "Content inside braces should be indented");
 
         assertEquals("}", tokens.get(2).getNode().getText());
@@ -88,6 +88,31 @@ class CypherFormatterIndentTest {
 
         assertEquals("AFTER", tokens.get(3).getNode().getText());
         assertEquals(Indent.Type.NONE, tokens.get(3).getIndent().getType(), "Following tokens stay at base indent");
+    }
+
+    @Test
+    void indentsBrokenMapElementsByTwoSpaces() {
+        String longKey = "a".repeat(90);
+        StubAstNode root = StubAstNode.root(
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "RETURN"),
+                StubAstNode.token(CypherTokenTypes.BRACE_OPEN, "{"),
+                StubAstNode.token(CypherTokenTypes.IDENTIFIER, longKey),
+                StubAstNode.token(CypherTokenTypes.COLON, ":"),
+                StubAstNode.token(CypherTokenTypes.IDENTIFIER, "value"),
+                StubAstNode.token(CypherTokenTypes.BRACE_CLOSE, "}")
+        );
+
+        List<CypherBlock> tokens = buildBlocks(root);
+
+        assertEquals("{", tokens.get(1).getNode().getText());
+        assertEquals(Indent.Type.NONE, tokens.get(1).getIndent().getType(), "Opening brace stays at base indent");
+
+        assertEquals(longKey, tokens.get(2).getNode().getText());
+        assertEquals(Indent.getSpaceIndent(2).toString(), tokens.get(2).getIndent().toString(),
+                "Broken map elements should be indented by two spaces");
+
+        assertEquals("}", tokens.get(5).getNode().getText());
+        assertEquals(Indent.Type.NONE, tokens.get(5).getIndent().getType(), "Closing brace returns to base indent");
     }
 
     @Test
@@ -138,6 +163,52 @@ class CypherFormatterIndentTest {
     }
 
     @Test
+    void indentsMergeActionsWithTwoSpaces() {
+        StubAstNode root = StubAstNode.root(
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "MERGE"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "ON"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "CREATE"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "SET"),
+                StubAstNode.token(CypherTokenTypes.BRACE_OPEN, "{"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "MERGE"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "ON"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "MATCH"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "SET"),
+                StubAstNode.token(CypherTokenTypes.BRACE_CLOSE, "}")
+        );
+
+        List<CypherBlock> tokens = buildBlocks(root);
+        Indent twoSpaces = Indent.getSpaceIndent(2);
+        Indent sixSpaces = Indent.getSpaceIndent(6);
+
+        assertEquals(twoSpaces.toString(), tokens.get(1).getIndent().toString(),
+                "ON CREATE should indent two spaces relative to MERGE");
+        assertEquals(sixSpaces.toString(), tokens.get(6).getIndent().toString(),
+                "ON MATCH inside braces should add two spaces on top of the brace indent");
+    }
+
+    @Test
+    void addsTwoSpacesPerBrokenGroup() {
+        String longIdentifier = "z".repeat(90);
+        StubAstNode root = StubAstNode.root(
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "RETURN"),
+                StubAstNode.token(CypherTokenTypes.PAREN_OPEN, "("),
+                StubAstNode.token(CypherTokenTypes.IDENTIFIER, "outer"),
+                StubAstNode.token(CypherTokenTypes.PAREN_OPEN, "("),
+                StubAstNode.token(CypherTokenTypes.IDENTIFIER, longIdentifier),
+                StubAstNode.token(CypherTokenTypes.PAREN_CLOSE, ")"),
+                StubAstNode.token(CypherTokenTypes.PAREN_CLOSE, ")")
+        );
+
+        List<CypherBlock> tokens = buildBlocks(root);
+
+        assertEquals(Indent.getSpaceIndent(2).toString(), tokens.get(2).getIndent().toString(),
+                "Content inside a broken group should be indented by two spaces");
+        assertEquals(Indent.getSpaceIndent(4).toString(), tokens.get(4).getIndent().toString(),
+                "Nested broken group content should add two more spaces");
+    }
+
+    @Test
     void usesContinuationIndentForTabsInNestedBlocks() {
         StubAstNode root = StubAstNode.root(
                 StubAstNode.token(CypherTokenTypes.KEYWORD, "CALL"),
@@ -166,18 +237,44 @@ class CypherFormatterIndentTest {
     }
 
     @Test
+    void indentsWhenAndElseByTwoSpacesInsideCaseExpression() {
+        StubAstNode root = StubAstNode.root(
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "RETURN"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "CASE"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "WHEN"),
+                StubAstNode.token(CypherTokenTypes.IDENTIFIER, "x"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "THEN"),
+                StubAstNode.token(CypherTokenTypes.IDENTIFIER, "y"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "ELSE"),
+                StubAstNode.token(CypherTokenTypes.IDENTIFIER, "z"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "END")
+        );
+
+        List<CypherBlock> tokens = buildBlocks(root);
+
+        assertEquals(Indent.getSpaceIndent(2).toString(), tokens.get(2).getIndent().toString(),
+                "WHEN should be indented by two spaces relative to CASE");
+        assertEquals(Indent.getSpaceIndent(2).toString(), tokens.get(6).getIndent().toString(),
+                "ELSE should be indented by two spaces relative to CASE");
+        assertEquals(Indent.Type.NONE, tokens.get(8).getIndent().getType(),
+                "END should return to the CASE indentation level");
+    }
+
+    @Test
     void keepsBaseIndentBetweenTopLevelKeywords() {
+        StubAstNode root = StubAstNode.root(
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "MATCH"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "RETURN")
+        );
         CypherBlock block = new CypherBlock(
-                StubAstNode.root(
-                        StubAstNode.token(CypherTokenTypes.KEYWORD, "MATCH"),
-                        StubAstNode.token(CypherTokenTypes.KEYWORD, "RETURN")
-                ),
+                root,
                 null,
                 null,
                 CypherIndents.none(),
                 null,
                 4,
-                false
+                false,
+                CypherBlock.GroupLayout.forRoot(root)
         );
 
         ChildAttributes attributes = block.getChildAttributes(1);
@@ -188,18 +285,20 @@ class CypherFormatterIndentTest {
 
     @Test
     void indentsNewLinesInsideBraces() {
+        StubAstNode root = StubAstNode.root(
+                StubAstNode.token(CypherTokenTypes.BRACE_OPEN, "{"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "MATCH"),
+                StubAstNode.token(CypherTokenTypes.BRACE_CLOSE, "}")
+        );
         CypherBlock block = new CypherBlock(
-                StubAstNode.root(
-                        StubAstNode.token(CypherTokenTypes.BRACE_OPEN, "{"),
-                        StubAstNode.token(CypherTokenTypes.KEYWORD, "MATCH"),
-                        StubAstNode.token(CypherTokenTypes.BRACE_CLOSE, "}")
-                ),
+                root,
                 null,
                 null,
                 CypherIndents.none(),
                 null,
                 4,
-                false
+                false,
+                CypherBlock.GroupLayout.forRoot(root)
         );
 
         ChildAttributes afterOpeningBrace = block.getChildAttributes(1);
@@ -219,7 +318,8 @@ class CypherFormatterIndentTest {
     }
 
     private List<CypherBlock> buildBlocks(StubAstNode root, boolean useTabs) {
-        List<Block> children = new CypherBlock(root, null, null, CypherIndents.none(), null, 4, useTabs).buildChildren();
+        List<Block> children = new CypherBlock(root, null, null, CypherIndents.none(), null, 4, useTabs,
+                CypherBlock.GroupLayout.forRoot(root)).buildChildren();
         List<CypherBlock> tokens = new ArrayList<>();
         for (Block child : children) {
             CypherBlock block = (CypherBlock) child;

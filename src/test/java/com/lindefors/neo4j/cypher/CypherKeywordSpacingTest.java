@@ -49,7 +49,8 @@ class CypherKeywordSpacingTest {
                 StubAstNode.token(CypherTokenTypes.KEYWORD, "RETURN")
         );
 
-        CypherBlock parent = new CypherBlock(root, null, null, CypherIndents.none(), null, 4, false);
+        CypherBlock parent = new CypherBlock(root, null, null, CypherIndents.none(), null, 4, false,
+                CypherBlock.GroupLayout.forRoot(root));
         List<Block> children = parent.buildChildren();
         Spacing spacing = parent.getSpacing(null, children.get(0));
 
@@ -58,10 +59,20 @@ class CypherKeywordSpacingTest {
     }
 
     @Test
-    void keepsClauseContinuationsInline() {
+    void movesWhereClauseToNewLine() {
         StubAstNode root = StubAstNode.root(
                 StubAstNode.token(CypherTokenTypes.KEYWORD, "MATCH"),
-                StubAstNode.token(CypherTokenTypes.KEYWORD, "WHERE"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "WHERE")
+        );
+
+        Spacing spacing = spacingAt(root, 0, 1);
+
+        assertLineBreak(spacing, "WHERE should start on its own line after MATCH");
+    }
+
+    @Test
+    void keepsClauseContinuationsInline() {
+        StubAstNode root = StubAstNode.root(
                 StubAstNode.token(CypherTokenTypes.KEYWORD, "RETURN"),
                 StubAstNode.token(CypherTokenTypes.KEYWORD, "ORDER"),
                 StubAstNode.token(CypherTokenTypes.KEYWORD, "BY"),
@@ -69,13 +80,11 @@ class CypherKeywordSpacingTest {
                 StubAstNode.token(CypherTokenTypes.KEYWORD, "LIMIT")
         );
 
-        Spacing matchWhere = spacingAt(root, 0, 1);
-        Spacing returnOrder = spacingAt(root, 2, 3);
-        Spacing orderBy = spacingAt(root, 3, 4);
-        Spacing bySkip = spacingAt(root, 4, 5);
-        Spacing skipLimit = spacingAt(root, 5, 6);
+        Spacing returnOrder = spacingAt(root, 0, 1);
+        Spacing orderBy = spacingAt(root, 1, 2);
+        Spacing bySkip = spacingAt(root, 2, 3);
+        Spacing skipLimit = spacingAt(root, 3, 4);
 
-        assertSingleSpace(matchWhere, "WHERE should stay on the same line as MATCH");
         assertSingleSpace(returnOrder, "ORDER should stay on the same line as RETURN");
         assertSingleSpace(orderBy, "ORDER BY should stay on the same line");
         assertSingleSpace(bySkip, "SKIP should stay on the same line");
@@ -87,25 +96,74 @@ class CypherKeywordSpacingTest {
         StubAstNode root = StubAstNode.root(
                 StubAstNode.token(CypherTokenTypes.KEYWORD, "OPTIONAL"),
                 StubAstNode.token(CypherTokenTypes.KEYWORD, "MATCH"),
-                StubAstNode.token(CypherTokenTypes.KEYWORD, "MERGE"),
-                StubAstNode.token(CypherTokenTypes.KEYWORD, "ON"),
-                StubAstNode.token(CypherTokenTypes.KEYWORD, "CREATE"),
                 StubAstNode.token(CypherTokenTypes.KEYWORD, "LOAD"),
                 StubAstNode.token(CypherTokenTypes.KEYWORD, "CSV"),
                 StubAstNode.token(CypherTokenTypes.KEYWORD, "WITH")
         );
 
         Spacing optionalMatch = spacingAt(root, 0, 1);
-        Spacing mergeOn = spacingAt(root, 2, 3);
-        Spacing onCreate = spacingAt(root, 3, 4);
-        Spacing loadCsv = spacingAt(root, 5, 6);
-        Spacing csvWith = spacingAt(root, 6, 7);
+        Spacing loadCsv = spacingAt(root, 2, 3);
+        Spacing csvWith = spacingAt(root, 3, 4);
 
         assertSingleSpace(optionalMatch, "OPTIONAL MATCH should be kept inline");
-        assertSingleSpace(mergeOn, "ON should continue the MERGE clause");
-        assertSingleSpace(onCreate, "ON CREATE should be kept inline");
         assertSingleSpace(loadCsv, "LOAD CSV should be kept inline");
         assertSingleSpace(csvWith, "CSV WITH should be kept inline");
+    }
+
+    @Test
+    void indentsMergeActionsAndKeepsBodiesInline() {
+        StubAstNode root = StubAstNode.root(
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "MERGE"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "ON"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "CREATE"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "SET"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "ON"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "MATCH"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "SET")
+        );
+
+        Spacing mergeOn = spacingAt(root, 0, 1);
+        Spacing onCreate = spacingAt(root, 1, 2);
+        Spacing createSet = spacingAt(root, 2, 3);
+        Spacing setOnMatch = spacingAt(root, 3, 4);
+        Spacing onMatch = spacingAt(root, 4, 5);
+        Spacing matchSet = spacingAt(root, 5, 6);
+
+        assertLineBreak(mergeOn, "Merge actions should start on a new indented line");
+        assertSingleSpace(onCreate, "ON CREATE should be kept inline");
+        assertSingleSpace(createSet, "SET should stay on the same line as its ON action");
+        assertLineBreak(setOnMatch, "Second action should start on its own line");
+        assertSingleSpace(onMatch, "ON MATCH should keep MATCH inline");
+        assertSingleSpace(matchSet, "SET should stay inline after ON MATCH");
+    }
+
+    @Test
+    void keepsWhereExistsInline() {
+        StubAstNode root = StubAstNode.root(
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "WHERE"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "EXISTS")
+        );
+
+        Spacing whereExists = spacingAt(root, 0, 1);
+
+        assertSingleSpace(whereExists, "EXISTS should stay on the same line as WHERE");
+    }
+
+    @Test
+    void breaksLongGroupsFromOutsideIn() {
+        String longIdentifier = "a".repeat(90);
+        StubAstNode root = StubAstNode.root(
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "RETURN"),
+                StubAstNode.token(CypherTokenTypes.PAREN_OPEN, "("),
+                StubAstNode.token(CypherTokenTypes.IDENTIFIER, longIdentifier),
+                StubAstNode.token(CypherTokenTypes.PAREN_CLOSE, ")")
+        );
+
+        Spacing afterOpen = spacingAt(root, 1, 2);
+        Spacing beforeClose = spacingAt(root, 2, 3);
+
+        assertLineBreak(afterOpen, "Outermost group should break when it exceeds the line length");
+        assertLineBreak(beforeClose, "Closing parenthesis should align after a line break");
     }
 
     @Test
@@ -126,11 +184,17 @@ class CypherKeywordSpacingTest {
                 StubAstNode.token(CypherTokenTypes.PAREN_CLOSE, ")")
         );
 
+        Spacing beforeBraceOpen = spacingAt(root, 4, 5);
         Spacing afterBraceOpen = spacingAt(root, 5, 6);
         Spacing beforeBraceClose = spacingAt(root, 10, 11);
+        Spacing keyColon = spacingAt(root, 6, 7);
+        Spacing colonValue = spacingAt(root, 7, 8);
 
-        assertSingleSpace(afterBraceOpen, "Properties inside braces should stay inline");
-        assertSingleSpace(beforeBraceClose, "Closing brace should stay inline with properties");
+        assertSingleSpace(beforeBraceOpen, "Property map should be separated from labels/types");
+        assertNoSpace(afterBraceOpen, "No padding inside property map after '{'");
+        assertNoSpace(beforeBraceClose, "No padding inside property map before '}'");
+        assertNoSpace(keyColon, "No space between key and colon");
+        assertSingleSpace(colonValue, "Space required between colon and value");
     }
 
     @Test
@@ -175,8 +239,117 @@ class CypherKeywordSpacingTest {
         assertLineBreak(beforeBraceClose, "Closing brace should be on its own line when the block is indented");
     }
 
+    @Test
+    void breaksCaseBranchesOntoNewLines() {
+        StubAstNode root = StubAstNode.root(
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "RETURN"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "CASE"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "WHEN"),
+                StubAstNode.token(CypherTokenTypes.IDENTIFIER, "x"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "THEN"),
+                StubAstNode.token(CypherTokenTypes.IDENTIFIER, "y"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "ELSE"),
+                StubAstNode.token(CypherTokenTypes.IDENTIFIER, "z"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "END")
+        );
+
+        Spacing caseWhen = spacingAt(root, 1, 2);
+        Spacing beforeElse = spacingAt(root, 5, 6);
+        Spacing beforeEnd = spacingAt(root, 7, 8);
+        Spacing whenThen = spacingAt(root, 3, 4);
+
+        assertLineBreak(caseWhen, "WHEN should start on a new line inside CASE");
+        assertLineBreak(beforeElse, "ELSE should start on a new line inside CASE");
+        assertLineBreak(beforeEnd, "END should start on a new line inside CASE");
+        assertSingleSpace(whenThen, "THEN should stay inline after WHEN condition");
+    }
+
+    @Test
+    void breaksGroupsContainingCaseExpressions() {
+        StubAstNode root = StubAstNode.root(
+                StubAstNode.token(CypherTokenTypes.PAREN_OPEN, "("),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "CASE"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "WHEN"),
+                StubAstNode.token(CypherTokenTypes.IDENTIFIER, "x"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "THEN"),
+                StubAstNode.token(CypherTokenTypes.IDENTIFIER, "y"),
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "END"),
+                StubAstNode.token(CypherTokenTypes.PAREN_CLOSE, ")")
+        );
+
+        Spacing afterOpen = spacingAt(root, 0, 1);
+        Spacing beforeClose = spacingAt(root, 6, 7);
+
+        assertLineBreak(afterOpen, "Groups containing CASE expressions should break after the opener");
+        assertLineBreak(beforeClose, "Groups containing CASE expressions should break before the closer");
+    }
+
+    @Test
+    void breaksElementsOfLongListLiteralOntoNewLines() {
+        String longIdentifier = "a".repeat(90);
+        StubAstNode root = StubAstNode.root(
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "RETURN"),
+                StubAstNode.token(CypherTokenTypes.BRACKET_OPEN, "["),
+                StubAstNode.token(CypherTokenTypes.IDENTIFIER, longIdentifier),
+                StubAstNode.token(CypherTokenTypes.COMMA, ","),
+                StubAstNode.token(CypherTokenTypes.IDENTIFIER, "b"),
+                StubAstNode.token(CypherTokenTypes.BRACKET_CLOSE, "]")
+        );
+
+        Spacing afterComma = spacingAt(root, 3, 4);
+
+        assertLineBreak(afterComma, "Each list element should start on a new line when the list literal is broken");
+    }
+
+    @Test
+    void breaksElementsOfLongMapLiteralOntoNewLines() {
+        String longKey = "a".repeat(90);
+        StubAstNode root = StubAstNode.root(
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "RETURN"),
+                StubAstNode.token(CypherTokenTypes.BRACE_OPEN, "{"),
+                StubAstNode.token(CypherTokenTypes.IDENTIFIER, longKey),
+                StubAstNode.token(CypherTokenTypes.COLON, ":"),
+                StubAstNode.token(CypherTokenTypes.IDENTIFIER, "x"),
+                StubAstNode.token(CypherTokenTypes.COMMA, ","),
+                StubAstNode.token(CypherTokenTypes.IDENTIFIER, "b"),
+                StubAstNode.token(CypherTokenTypes.COLON, ":"),
+                StubAstNode.token(CypherTokenTypes.IDENTIFIER, "y"),
+                StubAstNode.token(CypherTokenTypes.BRACE_CLOSE, "}")
+        );
+
+        Spacing afterComma = spacingAt(root, 5, 6);
+
+        assertLineBreak(afterComma, "Each map entry should start on a new line when the map literal is broken");
+    }
+
+    @Test
+    void doesNotBreakCommasInsideNonBrokenNestedGroups() {
+        String longIdentifier = "a".repeat(90);
+        StubAstNode root = StubAstNode.root(
+                StubAstNode.token(CypherTokenTypes.KEYWORD, "RETURN"),
+                StubAstNode.token(CypherTokenTypes.BRACKET_OPEN, "["),
+                StubAstNode.token(CypherTokenTypes.IDENTIFIER, longIdentifier),
+                StubAstNode.token(CypherTokenTypes.COMMA, ","),
+                StubAstNode.token(CypherTokenTypes.IDENTIFIER, "f"),
+                StubAstNode.token(CypherTokenTypes.PAREN_OPEN, "("),
+                StubAstNode.token(CypherTokenTypes.IDENTIFIER, "x"),
+                StubAstNode.token(CypherTokenTypes.COMMA, ","),
+                StubAstNode.token(CypherTokenTypes.IDENTIFIER, "y"),
+                StubAstNode.token(CypherTokenTypes.PAREN_CLOSE, ")"),
+                StubAstNode.token(CypherTokenTypes.BRACKET_CLOSE, "]")
+        );
+
+        CypherBlock parent = new CypherBlock(root, null, null, CypherIndents.none(), null, 4, false,
+                CypherBlock.GroupLayout.forRoot(root));
+        List<Block> children = parent.buildChildren();
+        Spacing spacing = parent.getSpacing(children.get(7), children.get(8));
+
+        assertEquals(null, spacing, "Inner commas should not be forced onto new lines by outer literal wrapping rules");
+    }
+
     private Spacing spacingAt(StubAstNode root, int leftIndex, int rightIndex) {
-        CypherBlock parent = new CypherBlock(root, null, null, CypherIndents.none(), null, 4, false);
+        CypherBlock parent = new CypherBlock(root, null, null, CypherIndents.none(), null, 4, false,
+                CypherBlock.GroupLayout.forRoot(root));
         List<Block> children = parent.buildChildren();
         return parent.getSpacing(children.get(leftIndex), children.get(rightIndex));
     }
@@ -191,6 +364,13 @@ class CypherKeywordSpacingTest {
     private void assertLineBreak(@Nullable Spacing spacing, String message) {
         assertNotNull(spacing, message);
         assertEquals(1, lineFeeds(spacing), message);
+    }
+
+    private void assertNoSpace(@Nullable Spacing spacing, String message) {
+        assertNotNull(spacing, message);
+        assertEquals(0, lineFeeds(spacing), message);
+        assertEquals(0, minSpaces(spacing), message);
+        assertEquals(0, maxSpaces(spacing), message);
     }
 
     private int lineFeeds(@NotNull Spacing spacing) {
