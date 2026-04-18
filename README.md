@@ -2,7 +2,16 @@
 
 [![Latest Release](https://img.shields.io/github/v/release/paddan/neo4j-plugin?label=Download&logo=github)](https://github.com/paddan/neo4j-plugin/releases/latest)
 
-A lightweight IntelliJ IDEA plugin that adds basic support for Neo4j Cypher files (`.cyp`, `.cypher`): file type registration, syntax highlighting, code completion and a simple formatter.
+A lightweight IntelliJ IDEA plugin that adds support for Neo4j Cypher files (`.cyp`, `.cypher`).
+
+## Features
+- **Syntax highlighting** — keywords, functions, strings, comments, and more; customizable via `Settings > Editor > Color Scheme > Cypher`
+- **Code completion** — Cypher keywords and the full Neo4j 5.x built-in function catalog
+- **Formatter** — consistent indentation and spacing; auto-uppercases keywords on reformat (`Code > Reformat Code`)
+- **Folding** — collapse `MATCH`, `WHERE`, `WITH`, and other clause blocks
+- **Structure view** — top-level clause keywords listed in the Structure panel (`View > Tool Windows > Structure`)
+- **Comments** — `Ctrl+/` for line comments (`//`), `Ctrl+Shift+/` for block comments (`/* */`)
+- **Brace matching** — highlights matching `()`, `[]`, `{}`
 
 ## Requirements
 - IntelliJ IDEA 2024.2+ (IU; compatible up to 253.* per `untilBuild`)
@@ -16,15 +25,16 @@ A lightweight IntelliJ IDEA plugin that adds basic support for Neo4j Cypher file
 
 ## Install the Packaged Plugin
 1) Build the ZIP with `./gradlew buildPlugin` (or download the latest release from GitHub).
-2) If you download the Actions artifact: There's a zip-file `neo4j-plugin-1.0.5.zip` inside the downloaded `neo4j-plugin.zip`, install that as a plugin in intellij.
+2) If you download the Actions artifact: there is a zip file `neo4j-plugin-1.0.7.zip` inside the downloaded `neo4j-plugin.zip` — install that one.
 3) In IntelliJ IDEA: `Settings/Preferences > Plugins > ⚙ > Install Plugin from Disk...`.
-4) Select the plugin ZIP (e.g., `build/distributions/neo4j-plugin-1.0.5.zip` or the downloaded `neo4j-plugin-1.0.5.zip`), install, and restart the IDE.
+4) Select the plugin ZIP (e.g., `build/distributions/neo4j-plugin-1.0.7.zip` or the downloaded release ZIP), install, and restart the IDE.
 
 ## Usage
-- Open or create `.cyp` / `.cypher` files to get Cypher syntax highlighting and formatting support.
+- Open or create `.cyp` / `.cypher` files to get Cypher syntax highlighting, completion, and formatting.
+- Run `Code > Reformat Code` (`Ctrl+Alt+L` / `Cmd+Option+L`) to format and uppercase keywords.
 - Adjust colors under `Settings/Preferences > Editor > Color Scheme > Cypher`.
 
 ## Developing
 - Use `./gradlew runIde` for rapid iteration in a sandbox.
 - Update plugin metadata in `src/main/resources/META-INF/plugin.xml`.
-- Java sources live in `src/main/java/com/lindefors/neo4j/cypher`.1
+- Java sources live in `src/main/java/com/lindefors/neo4j/cypher`.
