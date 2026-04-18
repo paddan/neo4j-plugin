@@ -25,5 +25,8 @@
         <lang.foldingBuilder language="Cypher" implementationClass="com.lindefors.neo4j.cypher.CypherFoldingBuilder"/>
         <lang.braceMatcher language="Cypher" implementationClass="com.lindefors.neo4j.cypher.CypherBraceMatcher"/>
         <completion.contributor language="Cypher" implementationClass="com.lindefors.neo4j.cypher.CypherCompletionContributor"/>
+        <lang.commenter language="Cypher" implementationClass="com.lindefors.neo4j.cypher.CypherCommenter"/>
+        <lang.psiStructureViewFactory language="Cypher" implementationClass="com.lindefors.neo4j.cypher.CypherStructureViewFactory"/>
+        <postFormatProcessor implementation="com.lindefors.neo4j.cypher.CypherKeywordCasePostFormatProcessor"/>
     </extensions>
 </idea-plugin>

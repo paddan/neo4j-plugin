@@ -1,11 +1,10 @@
 package com.lindefors.neo4j.cypher;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.lang.folding.FoldingBuilderEx;
+import com.intellij.lang.folding.FoldingBuilder;
 import com.intellij.lang.folding.FoldingDescriptor;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,39 +14,61 @@ import java.util.Deque;
 import java.util.List;
 
 /**
- * Provides basic folding for Cypher files by pairing parentheses, brackets, and braces when their
- * contents span multiple lines.
+ * Provides folding for Cypher files by pairing parentheses, brackets, and braces when their contents
+ * span multiple lines, and by collapsing multi-line block comments.
+ *
+ * <p>The AST walk is iterative (using an explicit stack) to avoid stack-overflow on deeply nested input.
  */
-public class CypherFoldingBuilder extends FoldingBuilderEx {
-    /**
-     * Builds fold regions by walking tokens in document order and pairing matching delimiters with a stack.
-     */
-    @Override
-    public FoldingDescriptor @NotNull [] buildFoldRegions(@NotNull PsiElement root,
-                                                          @NotNull Document document,
-                                                          boolean quick) {
-        List<FoldingDescriptor> descriptors = new ArrayList<>();
-        Deque<ASTNode> stack = new ArrayDeque<>();
+public class CypherFoldingBuilder implements FoldingBuilder {
 
-        walkAst(root.getNode(), node -> {
-            IElementType type = node.getElementType();
-            if (isOpening(type)) {
-                stack.push(node);
-                return;
+    @Override
+    public FoldingDescriptor @NotNull [] buildFoldRegions(@NotNull ASTNode node,
+                                                          @NotNull Document document) {
+        List<FoldingDescriptor> descriptors = new ArrayList<>();
+        Deque<ASTNode> delimiterStack = new ArrayDeque<>();
+
+        // Iterative pre-order walk using an explicit node stack
+        Deque<ASTNode> nodeStack = new ArrayDeque<>();
+        nodeStack.push(node);
+
+        while (!nodeStack.isEmpty()) {
+            ASTNode current = nodeStack.pop();
+            IElementType type = current.getElementType();
+
+            // Block comment spanning multiple lines is foldable
+            if (type == CypherTokenTypes.COMMENT) {
+                String text = current.getText();
+                if (text.startsWith("/*")) {
+                    TextRange range = current.getTextRange();
+                    if (document.getLineNumber(range.getStartOffset()) < document.getLineNumber(range.getEndOffset())) {
+                        descriptors.add(new FoldingDescriptor(current, range));
+                    }
+                }
             }
 
-            if (isClosing(type) && !stack.isEmpty()) {
-                ASTNode opening = stack.peek();
+            if (isOpening(type)) {
+                delimiterStack.push(current);
+            } else if (isClosing(type) && !delimiterStack.isEmpty()) {
+                ASTNode opening = delimiterStack.peek();
                 if (matches(opening.getElementType(), type)) {
-                    stack.pop();
-                    if (isMultiline(document, opening, node)) {
+                    delimiterStack.pop();
+                    if (isMultiline(document, opening, current)) {
                         TextRange range = new TextRange(opening.getTextRange().getStartOffset(),
-                                node.getTextRange().getEndOffset());
+                                current.getTextRange().getEndOffset());
                         descriptors.add(new FoldingDescriptor(opening, range));
                     }
                 }
             }
-        });
+
+            // Push children in reverse order so the first child is processed first
+            List<ASTNode> children = new ArrayList<>();
+            for (ASTNode child = current.getFirstChildNode(); child != null; child = child.getTreeNext()) {
+                children.add(child);
+            }
+            for (int i = children.size() - 1; i >= 0; i--) {
+                nodeStack.push(children.get(i));
+            }
+        }
 
         return descriptors.toArray(FoldingDescriptor[]::new);
     }
@@ -55,6 +76,9 @@ public class CypherFoldingBuilder extends FoldingBuilderEx {
     @Override
     public @NotNull String getPlaceholderText(@NotNull ASTNode node) {
         IElementType type = node.getElementType();
+        if (type == CypherTokenTypes.COMMENT) {
+            return "/* ... */";
+        }
         if (type == CypherTokenTypes.BRACE_OPEN) {
             return "{...}";
         }
@@ -70,13 +94,6 @@ public class CypherFoldingBuilder extends FoldingBuilderEx {
     @Override
     public boolean isCollapsedByDefault(@NotNull ASTNode node) {
         return false;
-    }
-
-    private void walkAst(@NotNull ASTNode node, @NotNull java.util.function.Consumer<ASTNode> visitor) {
-        for (ASTNode child = node.getFirstChildNode(); child != null; child = child.getTreeNext()) {
-            visitor.accept(child);
-            walkAst(child, visitor);
-        }
     }
 
     private boolean isOpening(IElementType type) {
@@ -97,9 +114,6 @@ public class CypherFoldingBuilder extends FoldingBuilderEx {
                 || (opening == CypherTokenTypes.PAREN_OPEN && closing == CypherTokenTypes.PAREN_CLOSE);
     }
 
-    /**
-     * Ensures folding only hides ranges that actually span multiple lines.
-     */
     private boolean isMultiline(Document document, ASTNode opening, ASTNode closing) {
         int startLine = document.getLineNumber(opening.getTextRange().getStartOffset());
         int endLine = document.getLineNumber(closing.getTextRange().getEndOffset());

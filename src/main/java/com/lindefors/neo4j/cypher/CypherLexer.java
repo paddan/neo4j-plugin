@@ -205,6 +205,19 @@ public class CypherLexer extends LexerBase {
     }
 
     private void scanNumber() {
+        // Hex literal: 0x1A or 0XFF
+        if (buffer.charAt(position) == '0' && position + 1 < endOffset) {
+            char next = buffer.charAt(position + 1);
+            if (next == 'x' || next == 'X') {
+                position += 2;
+                while (position < endOffset && isHexDigit(buffer.charAt(position))) {
+                    position++;
+                }
+                tokenType = CypherTokenTypes.NUMBER;
+                tokenEnd = position;
+                return;
+            }
+        }
         boolean seenDot = false;
         position++;
         while (position < endOffset) {
@@ -214,12 +227,30 @@ public class CypherLexer extends LexerBase {
             } else if (c == '.' && !seenDot && position + 1 < endOffset && Character.isDigit(buffer.charAt(position + 1))) {
                 seenDot = true;
                 position++;
+            } else if ((c == 'e' || c == 'E') && position + 1 < endOffset) {
+                // Scientific notation: optional sign followed by digits
+                int ahead = position + 1;
+                char next = buffer.charAt(ahead);
+                if (next == '+' || next == '-') {
+                    ahead++;
+                }
+                if (ahead < endOffset && Character.isDigit(buffer.charAt(ahead))) {
+                    position = ahead + 1;
+                    while (position < endOffset && Character.isDigit(buffer.charAt(position))) {
+                        position++;
+                    }
+                }
+                break;
             } else {
                 break;
             }
         }
         tokenType = CypherTokenTypes.NUMBER;
         tokenEnd = position;
+    }
+
+    private boolean isHexDigit(char c) {
+        return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
     }
 
     /**
@@ -353,16 +384,16 @@ public class CypherLexer extends LexerBase {
     }
 
     private boolean isIdentifierStart(char c) {
-        return Character.isLetter(c) || c == '_' || c == '$';
+        return Character.isLetter(c) || c == '_';
     }
 
     private boolean isIdentifierPart(char c) {
-        return Character.isLetterOrDigit(c) || c == '_' || c == '$';
+        return Character.isLetterOrDigit(c) || c == '_';
     }
 
     private boolean operatorChar(char c) {
         return switch (c) {
-            case '+', '-', '*', '/', '=', '<', '>', '&', '|', '!', '%', '^' -> true;
+            case '+', '-', '*', '/', '=', '<', '>', '&', '|', '!', '%', '^', '~' -> true;
             default -> false;
         };
     }

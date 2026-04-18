@@ -32,7 +32,7 @@ public class CypherColorSettingsPage implements ColorSettingsPage {
     @Override
     @Nullable
     public Icon getIcon() {
-        return null;
+        return CypherFileType.INSTANCE.getIcon();
     }
 
     @Override

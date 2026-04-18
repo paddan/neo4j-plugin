@@ -28,6 +28,7 @@ public final class CypherTokenTypes {
             "ORDER", "BY", "SKIP", "LIMIT", "ASC", "DESC",
             "UNION", "ALL", "DISTINCT", "AS",
             "PROFILE", "EXPLAIN",
+            "ALTER", "DROP",
 
             // Conditional / sequential queries
             "CASE", "WHEN", "THEN", "ELSE", "END", "NEXT", "FINISH",
@@ -38,8 +39,9 @@ public final class CypherTokenTypes {
 
             // Predicates and operators
             "AND", "OR", "XOR", "NOT", "IS", "STARTS", "ENDS", "CONTAINS",
-            "TRUE", "FALSE", "NULL", "EXISTS", "COUNT",
+            "TRUE", "FALSE", "NULL", "COUNT",
             "NORMALIZED", "NFC", "NFD", "NFKC", "NFKD",
+            "TYPED", "DIFFERENT",
 
             // Pattern options and path finding
             "SHORTEST", "ANY", "GROUPS", "REPEATABLE", "ELEMENTS",
@@ -49,6 +51,7 @@ public final class CypherTokenTypes {
             "OPTIONS", "EACH", "FOR", "USING",
             "CONSTRAINT", "CONSTRAINTS", "REQUIRE", "UNIQUE", "KEY",
             "NODE", "RELATIONSHIP",
+            "SEEK", "SCAN", "JOIN", "PERIODIC", "BOOSTED",
 
             // Administrative commands and privileges
             "SHOW", "TERMINATE", "STOP", "START", "GRANT", "DENY", "REVOKE",
@@ -60,8 +63,59 @@ public final class CypherTokenTypes {
             "PASSWORD", "ACTIVE", "SUSPENDED", "LANGUAGE", "CYPHER", "VERSION",
             "PRIMARY", "SECONDARIES", "TOPOLOGY", "EXECUTE", "COPY", "CURRENT", "COMMANDS",
             "FUNCTIONS", "PROCEDURES", "SETTINGS", "BUILT", "EXECUTABLE", "POPULATED",
-            "TO", "FROM", "AT"
+            "TO", "AT",
+            "WAIT", "NOWAIT", "BRIEF", "VERBOSE"
     )));
+
+    /**
+     * Keywords that begin a new Cypher clause and should be placed on their own line by the formatter.
+     * Shared by the formatter and completion contributor to avoid duplication.
+     */
+    public static final Set<String> CLAUSE_START_KEYWORDS = Set.of(
+            "ALTER",
+            "CALL",
+            "CREATE",
+            "DELETE",
+            "DENY",
+            "DETACH",
+            "DROP",
+            "FINISH",
+            "FOREACH",
+            "GRANT",
+            "LET",
+            "LOAD",
+            "MATCH",
+            "MERGE",
+            "NEXT",
+            "OPTIONAL",
+            "RETURN",
+            "REMOVE",
+            "REVOKE",
+            "SET",
+            "SHOW",
+            "START",
+            "STOP",
+            "TERMINATE",
+            "UNION",
+            "UNWIND",
+            "USE",
+            "WHERE",
+            "WITH"
+    );
+
+    /**
+     * Keywords that continue a clause (same logical unit) but follow on a new line.
+     * Shared by the formatter and completion contributor to avoid duplication.
+     */
+    public static final Set<String> CLAUSE_CONTINUATION_KEYWORDS = Set.of(
+            "BY",
+            "LIMIT",
+            "ON",
+            "ORDER",
+            "SKIP",
+            "THEN",
+            "YIELD"
+    );
 
     public static final IElementType KEYWORD = new IElementType("KEYWORD", CypherLanguage.INSTANCE);
     public static final IElementType IDENTIFIER = new IElementType("IDENTIFIER", CypherLanguage.INSTANCE);

@@ -28,8 +28,9 @@ public class CypherFormattingModelBuilder implements FormattingModelBuilder {
         int indentSize = resolveIndentSize(indentOptions);
         boolean useTabs = indentOptions.USE_TAB_CHARACTER;
 
+        int rightMargin = settings.getRightMargin(CypherLanguage.INSTANCE);
         ASTNode node = element.getNode();
-        CypherBlock.GroupLayout groupLayout = CypherBlock.GroupLayout.forRoot(node);
+        CypherBlock.GroupLayout groupLayout = CypherBlock.GroupLayout.forRoot(node, rightMargin);
         Block block = new CypherBlock(node, Wrap.createWrap(WrapType.NONE, false),
                 null, CypherIndents.none(), spacingBuilder, indentSize, useTabs, groupLayout);
         return FormattingModelProvider.createFormattingModelForPsiFile(element.getContainingFile(), block, settings);

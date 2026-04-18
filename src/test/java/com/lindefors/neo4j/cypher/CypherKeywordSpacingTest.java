@@ -50,7 +50,7 @@ class CypherKeywordSpacingTest {
         );
 
         CypherBlock parent = new CypherBlock(root, null, null, CypherIndents.none(), null, 4, false,
-                CypherBlock.GroupLayout.forRoot(root));
+                CypherBlock.GroupLayout.forRoot(root, 80));
         List<Block> children = parent.buildChildren();
         Spacing spacing = parent.getSpacing(null, children.get(0));
 
@@ -340,7 +340,7 @@ class CypherKeywordSpacingTest {
         );
 
         CypherBlock parent = new CypherBlock(root, null, null, CypherIndents.none(), null, 4, false,
-                CypherBlock.GroupLayout.forRoot(root));
+                CypherBlock.GroupLayout.forRoot(root, 80));
         List<Block> children = parent.buildChildren();
         Spacing spacing = parent.getSpacing(children.get(7), children.get(8));
 
@@ -349,7 +349,7 @@ class CypherKeywordSpacingTest {
 
     private Spacing spacingAt(StubAstNode root, int leftIndex, int rightIndex) {
         CypherBlock parent = new CypherBlock(root, null, null, CypherIndents.none(), null, 4, false,
-                CypherBlock.GroupLayout.forRoot(root));
+                CypherBlock.GroupLayout.forRoot(root, 80));
         List<Block> children = parent.buildChildren();
         return parent.getSpacing(children.get(leftIndex), children.get(rightIndex));
     }

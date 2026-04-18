@@ -274,7 +274,7 @@ class CypherFormatterIndentTest {
                 null,
                 4,
                 false,
-                CypherBlock.GroupLayout.forRoot(root)
+                CypherBlock.GroupLayout.forRoot(root, 80)
         );
 
         ChildAttributes attributes = block.getChildAttributes(1);
@@ -298,7 +298,7 @@ class CypherFormatterIndentTest {
                 null,
                 4,
                 false,
-                CypherBlock.GroupLayout.forRoot(root)
+                CypherBlock.GroupLayout.forRoot(root, 80)
         );
 
         ChildAttributes afterOpeningBrace = block.getChildAttributes(1);
@@ -319,7 +319,7 @@ class CypherFormatterIndentTest {
 
     private List<CypherBlock> buildBlocks(StubAstNode root, boolean useTabs) {
         List<Block> children = new CypherBlock(root, null, null, CypherIndents.none(), null, 4, useTabs,
-                CypherBlock.GroupLayout.forRoot(root)).buildChildren();
+                CypherBlock.GroupLayout.forRoot(root, 80)).buildChildren();
         List<CypherBlock> tokens = new ArrayList<>();
         for (Block child : children) {
             CypherBlock block = (CypherBlock) child;

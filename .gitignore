@@ -1,10 +1,13 @@
 .gradle
+.gradle-user-home
 *.class
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
 .kotlin
+
+.intellijPlatform
 
 ### IntelliJ IDEA ###
 .idea/

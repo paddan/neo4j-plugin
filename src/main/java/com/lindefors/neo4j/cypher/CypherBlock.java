@@ -680,7 +680,7 @@ public class CypherBlock extends AbstractBlock {
             this.brokenGroups = brokenGroups;
         }
 
-        static GroupLayout forRoot(@NotNull ASTNode root) {
+        static GroupLayout forRoot(@NotNull ASTNode root, int maxLineLength) {
             IdentityHashMap<ASTNode, GroupInfo> openGroups = new IdentityHashMap<>();
             IdentityHashMap<ASTNode, GroupInfo> closeGroups = new IdentityHashMap<>();
             List<GroupInfo> topGroups = new ArrayList<>();
@@ -714,7 +714,7 @@ public class CypherBlock extends AbstractBlock {
                 }
             }
 
-            markBreaks(topGroups, 0);
+            markBreaks(topGroups, 0, maxLineLength);
 
             List<GroupInfo> broken = new ArrayList<>();
             collectBroken(topGroups, broken);
@@ -757,15 +757,15 @@ public class CypherBlock extends AbstractBlock {
             return depth;
         }
 
-        private static void markBreaks(List<GroupInfo> groups, int brokenDepth) {
+        private static void markBreaks(List<GroupInfo> groups, int brokenDepth, int maxLineLength) {
             for (GroupInfo group : groups) {
-                int available = MAX_LINE_LENGTH - brokenDepth * BROKEN_GROUP_INDENT;
+                int available = maxLineLength - brokenDepth * BROKEN_GROUP_INDENT;
                 int childDepth = brokenDepth;
                 if (group.containsCase || group.inlineLength > available) {
                     group.broken = true;
                     childDepth = brokenDepth + 1;
                 }
-                markBreaks(group.children, childDepth);
+                markBreaks(group.children, childDepth, maxLineLength);
             }
         }
 
@@ -803,7 +803,7 @@ public class CypherBlock extends AbstractBlock {
 
             private void computeInlineLength() {
                 if (close == null) {
-                    inlineLength = MAX_LINE_LENGTH + 1;
+                    inlineLength = Integer.MAX_VALUE;
                     return;
                 }
                 int length = open.getTextLength() + close.getTextLength();
@@ -843,50 +843,10 @@ public class CypherBlock extends AbstractBlock {
         }
     }
 
-    private static final int MAX_LINE_LENGTH = 80;
     private static final int BROKEN_GROUP_INDENT = 2;
     private static final int CASE_BRANCH_INDENT = 2;
-    private static final Set<String> CLAUSE_START_KEYWORDS = Set.of(
-            "ALTER",
-            "CALL",
-            "CREATE",
-            "DELETE",
-            "DENY",
-            "DETACH",
-            "DROP",
-            "FINISH",
-            "FOREACH",
-            "GRANT",
-            "LET",
-            "LOAD",
-            "MATCH",
-            "MERGE",
-            "NEXT",
-            "OPTIONAL",
-            "RETURN",
-            "REMOVE",
-            "REVOKE",
-            "SET",
-            "SHOW",
-            "START",
-            "STOP",
-            "TERMINATE",
-            "UNION",
-            "UNWIND",
-            "USE",
-            "WHERE",
-            "WITH"
-    );
-
-    private static final Set<String> CLAUSE_CONTINUATION_KEYWORDS = Set.of(
-            "BY",
-            "LIMIT",
-            "ORDER",
-            "SKIP",
-            "ON",
-            "THEN",
-            "YIELD"
-    );
+    private static final Set<String> CLAUSE_START_KEYWORDS = CypherTokenTypes.CLAUSE_START_KEYWORDS;
+    private static final Set<String> CLAUSE_CONTINUATION_KEYWORDS = CypherTokenTypes.CLAUSE_CONTINUATION_KEYWORDS;
 
     private static final Set<String> INLINE_KEYWORD_PAIRS = Set.of(
             "OPTIONAL MATCH",

@@ -10,16 +10,24 @@ import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
 /**
- * Provides lightweight Cypher completions (keywords/operators) while avoiding noisy suggestions
- * inside structural graph patterns such as nodes {@code (n:Label)} or relationships {@code -[r:TYPE]->}.
- * The contributor relies on token-level heuristics instead of a full parse tree, so the checks favor
- * fast bail-outs over exhaustive accuracy.
+ * Provides lightweight Cypher completions (keywords, operators, built-in functions, visible identifiers)
+ * while avoiding noisy suggestions inside structural graph patterns such as nodes {@code (n:Label)} or
+ * relationships {@code -[r:TYPE]->}. The contributor relies on token-level heuristics instead of a full
+ * parse tree, so the checks favor fast bail-outs over exhaustive accuracy.
+ *
+ * <p>Completion items are grouped into three priority tiers:
+ * <ol>
+ *   <li>Keywords — highest priority, sorted alphabetically.</li>
+ *   <li>Built-in functions — medium priority.</li>
+ *   <li>Visible identifiers and operators — lower priority.</li>
+ * </ol>
  */
 public class CypherCompletionContributor extends CompletionContributor {
     private static final List<String> OPERATORS = List.of(
@@ -35,7 +43,20 @@ public class CypherCompletionContributor extends CompletionContributor {
             "RETURN", "WITH", "WHERE", "ORDER", "BY", "SET", "REMOVE",
             "DELETE", "DETACH", "UNWIND", "FOREACH", "YIELD", "LET"
     );
-    private static final Set<String> CLAUSE_BOUNDARY_KEYWORDS = Set.of("UNION", "CALL", "NEXT");
+
+    /** Keywords sorted alphabetically for a predictable completion popup. */
+    private static final List<String> SORTED_KEYWORDS;
+
+    static {
+        List<String> sorted = new ArrayList<>(CypherTokenTypes.KEYWORDS);
+        sorted.sort(String::compareToIgnoreCase);
+        SORTED_KEYWORDS = List.copyOf(sorted);
+    }
+
+    private static final double PRIORITY_KEYWORD = 20.0;
+    private static final double PRIORITY_FUNCTION = 10.0;
+    private static final double PRIORITY_IDENTIFIER = 5.0;
+    private static final double PRIORITY_OPERATOR = 1.0;
 
     public CypherCompletionContributor() {
         extend(CompletionType.BASIC, PlatformPatterns.psiElement().withLanguage(CypherLanguage.INSTANCE),
@@ -53,22 +74,35 @@ public class CypherCompletionContributor extends CompletionContributor {
                             return;
                         }
 
+                        // Visible identifiers (variable names in scope)
                         if (isValueContext(position)) {
                             for (String identifier : collectVisibleIdentifiers(position)) {
-                                result.addElement(LookupElementBuilder.create(identifier));
+                                result.addElement(PrioritizedLookupElement.withPriority(
+                                        LookupElementBuilder.create(identifier), PRIORITY_IDENTIFIER));
                             }
                         }
 
-                        // Add keywords
-                        for (String keyword : CypherTokenTypes.KEYWORDS) {
-                            result.addElement(LookupElementBuilder.create(keyword)
-                                    .withCaseSensitivity(false));
+                        // Keywords — sorted alphabetically, highest priority
+                        for (String keyword : SORTED_KEYWORDS) {
+                            result.addElement(PrioritizedLookupElement.withPriority(
+                                    LookupElementBuilder.create(keyword).withCaseSensitivity(false),
+                                    PRIORITY_KEYWORD));
                         }
 
-                        // Add operators
+                        // Built-in functions
+                        for (String function : CypherFunctions.FUNCTIONS) {
+                            result.addElement(PrioritizedLookupElement.withPriority(
+                                    LookupElementBuilder.create(function)
+                                            .withPresentableText(function)
+                                            .withCaseSensitivity(false),
+                                    PRIORITY_FUNCTION));
+                        }
+
+                        // Operators
                         for (String operator : OPERATORS) {
-                            result.addElement(LookupElementBuilder.create(operator)
-                                    .withCaseSensitivity(false));
+                            result.addElement(PrioritizedLookupElement.withPriority(
+                                    LookupElementBuilder.create(operator).withCaseSensitivity(false),
+                                    PRIORITY_OPERATOR));
                         }
                     }
                 });
@@ -257,7 +291,7 @@ public class CypherCompletionContributor extends CompletionContributor {
                 if (VALUE_KEYWORDS.contains(keyword)) {
                     return true;
                 }
-                if (CLAUSE_BOUNDARY_KEYWORDS.contains(keyword)) {
+                if (CypherTokenTypes.CLAUSE_START_KEYWORDS.contains(keyword)) {
                     return false;
                 }
             }
@@ -288,7 +322,7 @@ public class CypherCompletionContributor extends CompletionContributor {
             }
             if (type == CypherTokenTypes.KEYWORD) {
                 String keyword = current.getText().toUpperCase(Locale.ENGLISH);
-                if (CLAUSE_BOUNDARY_KEYWORDS.contains(keyword)) {
+                if (CypherTokenTypes.CLAUSE_START_KEYWORDS.contains(keyword)) {
                     break;
                 }
             }
