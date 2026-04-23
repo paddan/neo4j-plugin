@@ -4,6 +4,7 @@ import com.intellij.ide.structureView.StructureViewTreeElement;
 import com.intellij.ide.util.treeView.smartTree.TreeElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.navigation.ItemPresentation;
+import com.intellij.pom.Navigatable;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.TokenType;
@@ -42,8 +43,8 @@ public class CypherStructureViewElement implements StructureViewTreeElement {
         if (element instanceof PsiFile) {
             return;
         }
-        if (element.isValid()) {
-            element.getContainingFile().navigate(requestFocus);
+        if (element.isValid() && element instanceof Navigatable nav) {
+            nav.navigate(requestFocus);
         }
     }
 

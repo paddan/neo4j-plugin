@@ -8,15 +8,12 @@ import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Simple syntax highlighter that maps lexer token types to IntelliJ text attributes for Cypher.
  */
 public class CypherSyntaxHighlighter extends SyntaxHighlighterBase {
-    private static final Map<IElementType, TextAttributesKey> KEYS = new HashMap<>();
-
     public static final TextAttributesKey KEYWORD =
             TextAttributesKey.createTextAttributesKey("CYPHER_KEYWORD", DefaultLanguageHighlighterColors.KEYWORD);
     public static final TextAttributesKey IDENTIFIER =
@@ -40,22 +37,22 @@ public class CypherSyntaxHighlighter extends SyntaxHighlighterBase {
     public static final TextAttributesKey PARAMETER =
             TextAttributesKey.createTextAttributesKey("CYPHER_PARAMETER", DefaultLanguageHighlighterColors.INSTANCE_FIELD);
 
-    static {
-        KEYS.put(CypherTokenTypes.KEYWORD, KEYWORD);
-        KEYS.put(CypherTokenTypes.IDENTIFIER, IDENTIFIER);
-        KEYS.put(CypherTokenTypes.NUMBER, NUMBER);
-        KEYS.put(CypherTokenTypes.STRING, STRING);
-        KEYS.put(CypherTokenTypes.COMMENT, COMMENT);
-        KEYS.put(CypherTokenTypes.OPERATOR, OPERATOR);
-        KEYS.put(CypherTokenTypes.PAREN_OPEN, PARENTHESES);
-        KEYS.put(CypherTokenTypes.PAREN_CLOSE, PARENTHESES);
-        KEYS.put(CypherTokenTypes.BRACKET_OPEN, BRACKETS);
-        KEYS.put(CypherTokenTypes.BRACKET_CLOSE, BRACKETS);
-        KEYS.put(CypherTokenTypes.BRACE_OPEN, BRACES);
-        KEYS.put(CypherTokenTypes.BRACE_CLOSE, BRACES);
-        KEYS.put(CypherTokenTypes.DOT, DOT);
-        KEYS.put(CypherTokenTypes.PARAMETER, PARAMETER);
-    }
+    private static final Map<IElementType, TextAttributesKey> KEYS = Map.ofEntries(
+            Map.entry(CypherTokenTypes.KEYWORD, KEYWORD),
+            Map.entry(CypherTokenTypes.IDENTIFIER, IDENTIFIER),
+            Map.entry(CypherTokenTypes.NUMBER, NUMBER),
+            Map.entry(CypherTokenTypes.STRING, STRING),
+            Map.entry(CypherTokenTypes.COMMENT, COMMENT),
+            Map.entry(CypherTokenTypes.OPERATOR, OPERATOR),
+            Map.entry(CypherTokenTypes.PAREN_OPEN, PARENTHESES),
+            Map.entry(CypherTokenTypes.PAREN_CLOSE, PARENTHESES),
+            Map.entry(CypherTokenTypes.BRACKET_OPEN, BRACKETS),
+            Map.entry(CypherTokenTypes.BRACKET_CLOSE, BRACKETS),
+            Map.entry(CypherTokenTypes.BRACE_OPEN, BRACES),
+            Map.entry(CypherTokenTypes.BRACE_CLOSE, BRACES),
+            Map.entry(CypherTokenTypes.DOT, DOT),
+            Map.entry(CypherTokenTypes.PARAMETER, PARAMETER)
+    );
 
     @Override
     public @NotNull Lexer getHighlightingLexer() {

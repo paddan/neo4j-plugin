@@ -853,7 +853,6 @@ public class CypherBlock extends AbstractBlock {
             "LOAD CSV",
             "CSV WITH",
             "CALL YIELD",
-            "WHEN THEN",
             "WHERE EXISTS",
             "ORDER BY",
             "ON CREATE",

@@ -9,7 +9,7 @@
     </description>
 
     <depends>com.intellij.modules.platform</depends>
-    <depends optional="true">com.intellij.modules.lang</depends>
+    <depends>com.intellij.modules.lang</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- Register both .cyp and .cypher extensions -->

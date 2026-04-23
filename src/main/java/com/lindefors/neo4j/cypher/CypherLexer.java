@@ -182,19 +182,14 @@ public class CypherLexer extends LexerBase {
     }
 
     private void scanString(char quote) {
-        // Cypher strings:
-        // - Standard strings use single quotes and escape a quote by doubling it: 'Bob''s'
-        // - Backslash escaping is not generally used in Cypher, so we avoid treating '\\' as an escape.
-        // - We still support double quotes here because users may paste non-standard Cypher or older dialects.
         position++; // consume opening quote
         while (position < endOffset) {
             char c = buffer.charAt(position);
+            if (c == '\\' && position + 1 < endOffset) {
+                position += 2; // skip backslash escape sequence
+                continue;
+            }
             if (c == quote) {
-                // Handle doubled quote escape (e.g., '' inside a single-quoted string)
-                if (position + 1 < endOffset && buffer.charAt(position + 1) == quote) {
-                    position += 2;
-                    continue;
-                }
                 position++; // consume closing quote
                 break;
             }
