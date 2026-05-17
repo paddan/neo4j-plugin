@@ -41,3 +41,11 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
+
+intellijPlatform {
+    // befintlig pluginConfiguration-block...
+
+    publishing {
+        token = providers.gradleProperty("intellijPlatform.publishingToken")
+    }
+}
