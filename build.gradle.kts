@@ -30,7 +30,7 @@ java {
 
 dependencies {
     intellijPlatform {
-        intellijIdeaUltimate("2025.1")
+        intellijIdeaCommunity("2025.1")
     }
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
@@ -43,7 +43,7 @@ tasks.test {
 }
 
 intellijPlatform {
-    // befintlig pluginConfiguration-block...
+    // existing pluginConfiguration block...
 
     publishing {
         token = providers.gradleProperty("intellijPlatform.publishingToken")

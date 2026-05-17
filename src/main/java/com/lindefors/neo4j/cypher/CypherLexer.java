@@ -330,7 +330,11 @@ public class CypherLexer extends LexerBase {
             position++;
         }
         String word = buffer.subSequence(tokenStart, position).toString().toUpperCase(Locale.ENGLISH);
-        tokenType = KEYWORDS.contains(word) ? CypherTokenTypes.KEYWORD : CypherTokenTypes.IDENTIFIER;
+        if (KEYWORDS.contains(word) && !(CypherTokenTypes.KEYWORD_FUNCTIONS.contains(word) && nextNonWhitespaceIs('('))) {
+            tokenType = CypherTokenTypes.KEYWORD;
+        } else {
+            tokenType = CypherTokenTypes.IDENTIFIER;
+        }
         tokenEnd = position;
     }
 
@@ -381,6 +385,14 @@ public class CypherLexer extends LexerBase {
         }
         tokenType = CypherTokenTypes.OPERATOR;
         tokenEnd = position;
+    }
+
+    private boolean nextNonWhitespaceIs(char expected) {
+        int peek = position;
+        while (peek < endOffset && (buffer.charAt(peek) == ' ' || buffer.charAt(peek) == '\t')) {
+            peek++;
+        }
+        return peek < endOffset && buffer.charAt(peek) == expected;
     }
 
     private boolean isIdentifierStart(char c) {

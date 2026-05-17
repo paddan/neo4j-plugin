@@ -107,10 +107,6 @@ public final class CypherFunctions {
             "sphericalDistance()",
             "withinBBox()",
 
-            // Vector functions
-            "vector.similarity.cosine()",
-            "vector.similarity.euclidean()",
-
             // Aggregating functions
             "avg()",
             "collect()",

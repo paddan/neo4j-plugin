@@ -68,6 +68,15 @@ public final class CypherTokenTypes {
     )));
 
     /**
+     * Keywords that are also built-in functions. The lexer uses one-character lookahead: when one of
+     * these names is immediately followed by {@code (}, it is emitted as {@link #IDENTIFIER} so that
+     * function-call syntax gets function highlighting/completion rather than keyword treatment.
+     */
+    public static final Set<String> KEYWORD_FUNCTIONS = Set.of(
+            "ALL", "ANY", "COUNT", "EXISTS", "POINT", "RANGE", "REPLACE"
+    );
+
+    /**
      * Keywords that begin a new Cypher clause and should be placed on their own line by the formatter.
      * Shared by the formatter and completion contributor to avoid duplication.
      */

@@ -6,22 +6,18 @@ import com.intellij.formatting.Indent;
  * Centralizes commonly used indent types so they can be reused without reallocation.
  */
 final class CypherIndents {
-    private static final Indent NONE = Indent.getNoneIndent();
-    private static final Indent NORMAL = Indent.getNormalIndent();
-    private static final Indent CONTINUATION_WITHOUT_FIRST = Indent.getContinuationWithoutFirstIndent();
-
     private CypherIndents() {
     }
 
     static Indent none() {
-        return NONE;
+        return Indent.getNoneIndent();
     }
 
     static Indent normal() {
-        return NORMAL;
+        return Indent.getNormalIndent();
     }
 
     static Indent continuationWithoutFirst() {
-        return CONTINUATION_WITHOUT_FIRST;
+        return Indent.getContinuationWithoutFirstIndent();
     }
 }
