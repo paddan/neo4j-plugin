@@ -71,10 +71,12 @@ class CypherAnnotatorTest {
 
     @Test
     void identifierFollowedByParenIsFunctionName() {
-        // count(
+        // count(n)
         var anns = annotator.computeAnnotations(tokens(
                 CypherTokenTypes.IDENTIFIER, "count",
-                CypherTokenTypes.PAREN_OPEN, "("
+                CypherTokenTypes.PAREN_OPEN, "(",
+                CypherTokenTypes.IDENTIFIER, "n",
+                CypherTokenTypes.PAREN_CLOSE, ")"
         ));
         assertEquals(1, anns.size());
         assertEquals(CypherSyntaxHighlighter.FUNCTION_NAME, anns.get(0).attributes());
