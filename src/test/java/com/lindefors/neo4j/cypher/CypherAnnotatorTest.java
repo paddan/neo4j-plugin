@@ -109,4 +109,104 @@ class CypherAnnotatorTest {
         assertEquals(CypherSyntaxHighlighter.PROPERTY_KEY, anns.get(0).attributes());
         assertEquals(CypherSyntaxHighlighter.PROPERTY_KEY, anns.get(1).attributes());
     }
+
+    // --- error marking ---
+
+    @Test
+    void unmatchedOpenParenIsError() {
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.PAREN_OPEN, "("
+        ));
+        assertEquals(1, anns.size());
+        assertEquals(HighlightSeverity.ERROR, anns.get(0).severity());
+        assertEquals("Unmatched '('", anns.get(0).message());
+    }
+
+    @Test
+    void unmatchedCloseParenIsError() {
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.PAREN_CLOSE, ")"
+        ));
+        assertEquals(1, anns.size());
+        assertEquals(HighlightSeverity.ERROR, anns.get(0).severity());
+        assertEquals("Unmatched ')'", anns.get(0).message());
+    }
+
+    @Test
+    void matchedParensProduceNoErrors() {
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.PAREN_OPEN, "(",
+                CypherTokenTypes.IDENTIFIER, "n",
+                CypherTokenTypes.PAREN_CLOSE, ")"
+        ));
+        assertTrue(anns.isEmpty());
+    }
+
+    @Test
+    void unmatchedOpenBracketIsError() {
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.BRACKET_OPEN, "["
+        ));
+        assertEquals(1, anns.size());
+        assertEquals("Unmatched '['", anns.get(0).message());
+    }
+
+    @Test
+    void unmatchedOpenBraceIsError() {
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.BRACE_OPEN, "{"
+        ));
+        assertEquals(1, anns.size());
+        assertEquals("Unmatched '{'", anns.get(0).message());
+    }
+
+    @Test
+    void consecutiveClauseKeywordsProducesWarning() {
+        // MATCH RETURN — no content between clause starters
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.KEYWORD, "MATCH",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.KEYWORD, "RETURN"
+        ));
+        assertEquals(1, anns.size());
+        assertEquals(HighlightSeverity.WARNING, anns.get(0).severity());
+        assertTrue(anns.get(0).message().contains("missing clause body"));
+    }
+
+    @Test
+    void optionalMatchDoesNotWarn() {
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.KEYWORD, "OPTIONAL",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.KEYWORD, "MATCH"
+        ));
+        assertTrue(anns.isEmpty());
+    }
+
+    @Test
+    void detachDeleteDoesNotWarn() {
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.KEYWORD, "DETACH",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.KEYWORD, "DELETE"
+        ));
+        assertTrue(anns.isEmpty());
+    }
+
+    @Test
+    void clauseWithContentThenNewClauseDoesNotWarn() {
+        // MATCH (n) RETURN n — content between MATCH and RETURN
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.KEYWORD, "MATCH",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.PAREN_OPEN, "(",
+                CypherTokenTypes.IDENTIFIER, "n",
+                CypherTokenTypes.PAREN_CLOSE, ")",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.KEYWORD, "RETURN",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.IDENTIFIER, "n"
+        ));
+        assertTrue(anns.isEmpty());
+    }
 }
