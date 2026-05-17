@@ -150,8 +150,10 @@ public class CypherAnnotator implements Annotator {
             }
         }
 
-        // Note: unclosed delimiters (open without close) are intentionally not reported,
-        // as the user may be mid-typing. Only close-without-open mismatches are errors.
+        // Unclosed delimiters
+        for (LeafToken tok : parenStack) result.add(Annotation.error(tok.range(), "Unmatched '('"));
+        for (LeafToken tok : bracketStack) result.add(Annotation.error(tok.range(), "Unmatched '['"));
+        for (LeafToken tok : braceStack) result.add(Annotation.error(tok.range(), "Unmatched '{'"));
 
         return result;
     }
