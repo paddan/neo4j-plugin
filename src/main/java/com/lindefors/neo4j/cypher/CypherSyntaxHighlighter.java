@@ -36,6 +36,14 @@ public class CypherSyntaxHighlighter extends SyntaxHighlighterBase {
             TextAttributesKey.createTextAttributesKey("CYPHER_DOT", DefaultLanguageHighlighterColors.DOT);
     public static final TextAttributesKey PARAMETER =
             TextAttributesKey.createTextAttributesKey("CYPHER_PARAMETER", DefaultLanguageHighlighterColors.INSTANCE_FIELD);
+    public static final TextAttributesKey LABEL =
+            TextAttributesKey.createTextAttributesKey("CYPHER_LABEL", DefaultLanguageHighlighterColors.CLASS_NAME);
+    public static final TextAttributesKey RELATIONSHIP_TYPE =
+            TextAttributesKey.createTextAttributesKey("CYPHER_RELATIONSHIP_TYPE", DefaultLanguageHighlighterColors.INTERFACE_NAME);
+    public static final TextAttributesKey PROPERTY_KEY =
+            TextAttributesKey.createTextAttributesKey("CYPHER_PROPERTY_KEY", DefaultLanguageHighlighterColors.INSTANCE_FIELD);
+    public static final TextAttributesKey FUNCTION_NAME =
+            TextAttributesKey.createTextAttributesKey("CYPHER_FUNCTION_NAME", DefaultLanguageHighlighterColors.STATIC_METHOD);
 
     private static final Map<IElementType, TextAttributesKey> KEYS = Map.ofEntries(
             Map.entry(CypherTokenTypes.KEYWORD, KEYWORD),
