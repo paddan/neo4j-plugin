@@ -69,6 +69,7 @@ public class CypherAnnotator implements Annotator {
         }
     }
 
+    // Works because CypherParser produces a flat tree: all tokens are direct children of the root.
     private List<LeafToken> collectTokens(PsiElement root) {
         List<LeafToken> result = new ArrayList<>();
         PsiElement child = root.getFirstChild();
