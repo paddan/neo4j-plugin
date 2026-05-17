@@ -13,6 +13,59 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class CypherLexerParameterTest {
     @Test
+    void lexesFromAsKeyword() {
+        List<Token> tokens = lex("LOAD CSV FROM 'url' AS row");
+
+        assertEquals(CypherTokenTypes.KEYWORD, tokens.get(2).type, "FROM should lex as keyword");
+        assertEquals("FROM", tokens.get(2).text);
+    }
+
+    @Test
+    void lexesExistsAsKeyword() {
+        List<Token> tokens = lex("EXISTS { MATCH (n) RETURN n }");
+
+        assertEquals(CypherTokenTypes.KEYWORD, tokens.get(0).type, "EXISTS should lex as keyword");
+        assertEquals("EXISTS", tokens.get(0).text);
+    }
+
+    @Test
+    void lexesHexLiteralAsNumber() {
+        List<Token> tokens = lex("0xFF");
+
+        assertEquals(1, tokens.size(), "Single number token expected");
+        assertEquals(CypherTokenTypes.NUMBER, tokens.get(0).type);
+        assertEquals("0xFF", tokens.get(0).text);
+    }
+
+    @Test
+    void lexesScientificNotationAsNumber() {
+        List<Token> tokens = lex("1.5e10");
+
+        assertEquals(1, tokens.size(), "Single number token expected");
+        assertEquals(CypherTokenTypes.NUMBER, tokens.get(0).type);
+        assertEquals("1.5e10", tokens.get(0).text);
+    }
+
+    @Test
+    void lexesScientificNotationWithNegativeExponentAsNumber() {
+        List<Token> tokens = lex("2.3E-4");
+
+        assertEquals(1, tokens.size(), "Single number token expected");
+        assertEquals(CypherTokenTypes.NUMBER, tokens.get(0).type);
+        assertEquals("2.3E-4", tokens.get(0).text);
+    }
+
+    @Test
+    void lexesSingleQuotedStringWithBackslashEscape() {
+        List<Token> tokens = lex("'Bob\\'s'");
+
+        assertEquals(1, tokens.size(), "Single string token expected");
+        Token string = tokens.get(0);
+        assertEquals(CypherTokenTypes.STRING, string.type);
+        assertEquals("'Bob\\'s'", string.text);
+    }
+
+    @Test
     void lexesSingleQuotedStringWithDoubledQuoteEscape() {
         List<Token> tokens = lex("'Bob''s'");
 

@@ -190,6 +190,11 @@ public class CypherLexer extends LexerBase {
                 continue;
             }
             if (c == quote) {
+                // Doubled-quote escape (e.g. 'Bob''s') — both Cypher dialects
+                if (position + 1 < endOffset && buffer.charAt(position + 1) == quote) {
+                    position += 2;
+                    continue;
+                }
                 position++; // consume closing quote
                 break;
             }

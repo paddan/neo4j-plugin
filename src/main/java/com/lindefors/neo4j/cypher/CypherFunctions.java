@@ -131,10 +131,6 @@ public final class CypherFunctions {
             "none()",
             "single()",
 
-            // Path functions
-            "allShortestPaths()",
-            "shortestPath()",
-
             // Reduce / list comprehension helpers
             "reduce()"
     );

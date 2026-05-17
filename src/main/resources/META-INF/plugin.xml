@@ -4,7 +4,7 @@
     <vendor email="patrik@lindefors.com">Patrik Lindefors</vendor>
     <description>
         <![CDATA[
-        Basic Neo4j Cypher support: file type registration, syntax highlighting, formatting, and code completion.
+        Neo4j Cypher support: syntax highlighting, code completion (keywords and built-in functions), formatting with keyword uppercasing, folding, structure view, and comment toggling.
         ]]>
     </description>
 
