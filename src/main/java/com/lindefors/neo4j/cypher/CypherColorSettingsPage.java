@@ -26,7 +26,11 @@ public class CypherColorSettingsPage implements ColorSettingsPage {
             new AttributesDescriptor("Brackets", CypherSyntaxHighlighter.BRACKETS),
             new AttributesDescriptor("Braces", CypherSyntaxHighlighter.BRACES),
             new AttributesDescriptor("Dot", CypherSyntaxHighlighter.DOT),
-            new AttributesDescriptor("Parameter", CypherSyntaxHighlighter.PARAMETER)
+            new AttributesDescriptor("Parameter", CypherSyntaxHighlighter.PARAMETER),
+            new AttributesDescriptor("Semantic//Node label", CypherSyntaxHighlighter.LABEL),
+            new AttributesDescriptor("Semantic//Relationship type", CypherSyntaxHighlighter.RELATIONSHIP_TYPE),
+            new AttributesDescriptor("Semantic//Property key", CypherSyntaxHighlighter.PROPERTY_KEY),
+            new AttributesDescriptor("Semantic//Function name", CypherSyntaxHighlighter.FUNCTION_NAME),
     };
 
     @Override
@@ -46,17 +50,22 @@ public class CypherColorSettingsPage implements ColorSettingsPage {
     public String getDemoText() {
         return """
                 // Sample Cypher
-                MATCH (u:User {id: $userId, name: $(userName)})-[:FRIEND]->(friend)
+                MATCH (u:<label>User</label> {<propkey>id</propkey>: $userId})-[:<reltype>FRIEND</reltype>]->(friend)
                 WHERE friend.active = true
-                CALL { WITH $userId RETURN COUNT(*) AS c }
-                RETURN DISTINCT friend.name, friend.age, c ORDER BY friend.age DESC LIMIT 10;
+                RETURN DISTINCT <funcname>count</funcname>(friend.name) AS total
+                ORDER BY total DESC LIMIT 10;
                 """;
     }
 
     @Override
     @Nullable
     public Map<String, TextAttributesKey> getAdditionalHighlightingTagToDescriptorMap() {
-        return null;
+        return Map.of(
+                "label", CypherSyntaxHighlighter.LABEL,
+                "reltype", CypherSyntaxHighlighter.RELATIONSHIP_TYPE,
+                "propkey", CypherSyntaxHighlighter.PROPERTY_KEY,
+                "funcname", CypherSyntaxHighlighter.FUNCTION_NAME
+        );
     }
 
     @Override
