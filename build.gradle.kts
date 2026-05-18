@@ -19,6 +19,38 @@ intellijPlatform {
             sinceBuild = "251"
             untilBuild = provider { null }
         }
+        changeNotes = providers.provider {
+            val changelog = rootProject.file("CHANGELOG.md").readText()
+            // Extrahera det första versionsblocket (från första ## till nästa ##)
+            val rest = changelog.substringAfter("## ")
+            val block = if ("\n## " in rest) rest.substringBefore("\n## ") else rest
+            val (header, body) = block.split("\n", limit = 2).let {
+                it[0].trim() to it.getOrElse(1) { "" }.trim()
+            }
+            val version = header.substringBefore("]").trimStart('[')
+            val html = buildString {
+                append("<h3>$version</h3>")
+                var inList = false
+                for (line in body.lines()) {
+                    when {
+                        line.startsWith("### ") -> {
+                            if (inList) { append("</ul>"); inList = false }
+                            append("<h4>${line.removePrefix("### ")}</h4>")
+                        }
+                        line.startsWith("- ") -> {
+                            if (!inList) { append("<ul>"); inList = true }
+                            append("<li>${line.removePrefix("- ")}</li>")
+                        }
+                    }
+                }
+                if (inList) append("</ul>")
+            }
+            html
+        }
+    }
+
+    publishing {
+        token = providers.gradleProperty("intellijPlatform.publishingToken")
     }
 }
 
@@ -42,10 +74,3 @@ tasks.test {
     useJUnitPlatform()
 }
 
-intellijPlatform {
-    // existing pluginConfiguration block...
-
-    publishing {
-        token = providers.gradleProperty("intellijPlatform.publishingToken")
-    }
-}
