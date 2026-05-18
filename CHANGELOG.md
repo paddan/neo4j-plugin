@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.0.12] — 2026-05-18
+
+### Changed
+- Updated JetBrains Marketplace description with full HTML overview of features
+
 ## [1.0.11] — 2026-05-18
 
 ### Added

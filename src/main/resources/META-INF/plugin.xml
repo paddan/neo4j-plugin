@@ -4,7 +4,32 @@
     <vendor email="patrik@lindefors.com">Patrik Lindefors</vendor>
     <description>
         <![CDATA[
-        Neo4j Cypher support: syntax highlighting, code completion (keywords and built-in functions), formatting with keyword uppercasing, folding, structure view, and comment toggling.
+        <p>
+          Write Neo4j Cypher queries with full IDE support — right inside any JetBrains IDE.
+        </p>
+
+        <h2>Features</h2>
+        <ul>
+          <li><strong>Semantic syntax highlighting</strong> — keywords, function calls, node labels, relationship types,
+              properties, and parameters each get their own color category, fully customizable under
+              <em>Settings → Editor → Color Scheme → Cypher</em>.</li>
+          <li><strong>Code completion</strong> — all Cypher keywords and the complete Neo4j 5.x built-in function catalog.</li>
+          <li><strong>Auto-formatter</strong> — consistent indentation and automatic keyword uppercasing on
+              <em>Code → Reformat Code</em> (<kbd>Ctrl+Alt+L</kbd> / <kbd>⌘⌥L</kbd>).</li>
+          <li><strong>Code folding</strong> — collapse <code>MATCH</code>, <code>WHERE</code>, <code>WITH</code>,
+              and other clause blocks to reduce visual noise in long queries.</li>
+          <li><strong>Structure view</strong> — top-level Cypher clauses listed in the Structure panel for quick navigation.</li>
+          <li><strong>Brace matching</strong> — instant visual pairing of <code>()</code>, <code>[]</code>, and <code>{}</code>.</li>
+          <li><strong>Comment toggling</strong> — <kbd>Ctrl+/</kbd> for line comments (<code>//</code>),
+              <kbd>Ctrl+Shift+/</kbd> for block comments (<code>/* */</code>).</li>
+          <li><strong>Error detection</strong> — unclosed delimiters highlighted inline.</li>
+        </ul>
+
+        <h2>Supported file types</h2>
+        <p>Activates automatically for <code>.cyp</code> and <code>.cypher</code> files.</p>
+
+        <h2>Requirements</h2>
+        <p>Any JetBrains IDE 2025.1 or newer.</p>
         ]]>
     </description>
 
