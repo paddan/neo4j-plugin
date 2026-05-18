@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.0.13] — 2026-05-18
+
+### Changed
+- Build: changeNotes läses nu automatiskt från CHANGELOG.md; lade till `<category>Languages</category>` i plugin.xml för korrekt Marketplace-kategorisering
+
 ## [1.0.12] — 2026-05-18
 
 ### Changed
