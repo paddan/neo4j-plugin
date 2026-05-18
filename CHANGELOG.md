@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.11] — 2026-05-18
+
+### Added
+- CypherAnnotator with semantic highlighting: keywords, function names, relationship types, labels, properties, and parameters rendered with distinct color categories
+- Color settings page updated with semantic token categories
+- TextAttributesKey constants for all semantic highlight types
+
+### Fixed
+- Indent formatter now uses `Indent.getSpaceIndent(indentSize)` explicitly for all space-based indentation, ensuring the configured indent size is respected instead of IntelliJ's language-default fallback (which produced 6-space indent for Cypher)
+- Formatter reads indent size from `getCommonSettings(CypherLanguage)` with fallback to `OTHER_INDENT_OPTIONS`, so Cypher follows the project-wide "other file types" indent setting
+- Unclosed-delimiter error detection restored after regression
+
 ## [1.0.10] — 2026-05-17
 
 ### Fixed
