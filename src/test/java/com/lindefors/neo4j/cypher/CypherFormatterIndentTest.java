@@ -54,10 +54,10 @@ class CypherFormatterIndentTest {
         assertEquals(Indent.Type.NONE, tokens.get(1).getIndent().getType(), "Opening brace stays at base indent");
 
         assertEquals("MERGE", tokens.get(2).getNode().getText());
-        assertEquals(Indent.Type.NORMAL, tokens.get(2).getIndent().getType(), "First statement inside braces should be indented");
+        assertEquals(Indent.Type.SPACES, tokens.get(2).getIndent().getType(), "First statement inside braces should be indented");
 
         assertEquals("SET", tokens.get(3).getNode().getText());
-        assertEquals(Indent.Type.NORMAL, tokens.get(3).getIndent().getType(), "Second statement inside braces should be indented");
+        assertEquals(Indent.Type.SPACES, tokens.get(3).getIndent().getType(), "Second statement inside braces should be indented");
 
         assertEquals("}", tokens.get(4).getNode().getText());
         assertEquals(Indent.Type.NONE, tokens.get(4).getIndent().getType(), "Closing brace should return to base indent");
@@ -81,7 +81,7 @@ class CypherFormatterIndentTest {
         assertEquals(Indent.Type.NONE, tokens.get(0).getIndent().getType(), "Opening brace stays at base indent");
 
         assertEquals("MATCH", tokens.get(1).getNode().getText());
-        assertEquals(Indent.Type.NORMAL, tokens.get(1).getIndent().getType(), "Content inside braces should be indented");
+        assertEquals(Indent.Type.SPACES, tokens.get(1).getIndent().getType(), "Content inside braces should be indented");
 
         assertEquals("}", tokens.get(2).getNode().getText());
         assertEquals(Indent.Type.NONE, tokens.get(2).getIndent().getType(), "Closing brace resets indent");
@@ -144,19 +144,19 @@ class CypherFormatterIndentTest {
         assertEquals(Indent.Type.NONE, tokens.get(1).getIndent().getType(), "Outer opening brace is not indented");
 
         assertEquals("MATCH", tokens.get(2).getNode().getText());
-        assertEquals(Indent.Type.NORMAL, tokens.get(2).getIndent().getType(), "First level inside outer block uses normal indent");
+        assertEquals(Indent.Type.SPACES, tokens.get(2).getIndent().getType(), "First level inside outer block uses normal indent");
 
         assertEquals("{", tokens.get(3).getNode().getText());
-        assertEquals(Indent.Type.NORMAL, tokens.get(3).getIndent().getType(), "Nested block opening aligns with first-level indent");
+        assertEquals(Indent.Type.SPACES, tokens.get(3).getIndent().getType(), "Nested block opening aligns with first-level indent");
 
         assertEquals("RETURN", tokens.get(4).getNode().getText());
         assertEquals(Indent.Type.SPACES, tokens.get(4).getIndent().getType(), "Second level statements get an extra indent");
 
         assertEquals("}", tokens.get(5).getNode().getText());
-        assertEquals(Indent.Type.NORMAL, tokens.get(5).getIndent().getType(), "Closing nested block steps back one level");
+        assertEquals(Indent.Type.SPACES, tokens.get(5).getIndent().getType(), "Closing nested block steps back one level");
 
         assertEquals("WITH", tokens.get(6).getNode().getText());
-        assertEquals(Indent.Type.NORMAL, tokens.get(6).getIndent().getType(), "Content after nested block remains at first level");
+        assertEquals(Indent.Type.SPACES, tokens.get(6).getIndent().getType(), "Content after nested block remains at first level");
 
         assertEquals("}", tokens.get(7).getNode().getText());
         assertEquals(Indent.Type.NONE, tokens.get(7).getIndent().getType(), "Outer closing brace returns to base indent");
@@ -305,9 +305,9 @@ class CypherFormatterIndentTest {
         ChildAttributes afterIndentedContent = block.getChildAttributes(2);
         ChildAttributes afterClosingBrace = block.getChildAttributes(3);
 
-        assertEquals(Indent.Type.NORMAL, afterOpeningBrace.getChildIndent().getType(),
+        assertEquals(Indent.Type.SPACES, afterOpeningBrace.getChildIndent().getType(),
                 "Content directly inside braces should be indented");
-        assertEquals(Indent.Type.NORMAL, afterIndentedContent.getChildIndent().getType(),
+        assertEquals(Indent.Type.SPACES, afterIndentedContent.getChildIndent().getType(),
                 "Indentation stays while inside brace scope");
         assertEquals(Indent.Type.NONE, afterClosingBrace.getChildIndent().getType(),
                 "Indentation resets after closing brace");

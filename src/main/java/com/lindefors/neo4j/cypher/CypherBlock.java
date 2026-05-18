@@ -195,18 +195,12 @@ public class CypherBlock extends AbstractBlock {
         return indent;
     }
 
-    /**
-     * Chooses an indent style based on brace depth and whether tabs are in use.
-     */
     private Indent indentForBraceDepth(int braceDepth) {
         if (braceDepth <= 0) {
             return CypherIndents.none();
         }
-        if (braceDepth == 1) {
-            return CypherIndents.normal();
-        }
         if (useTabs) {
-            return CypherIndents.continuationWithoutFirst();
+            return braceDepth == 1 ? CypherIndents.normal() : CypherIndents.continuationWithoutFirst();
         }
         int indentSpaces = Math.max(1, indentSize) * braceDepth;
         return Indent.getSpaceIndent(indentSpaces);

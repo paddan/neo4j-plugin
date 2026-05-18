@@ -24,9 +24,9 @@ public class CypherFormattingModelBuilder implements FormattingModelBuilder {
         PsiElement element = formattingContext.getPsiElement();
         CodeStyleSettings settings = formattingContext.getCodeStyleSettings();
         SpacingBuilder spacingBuilder = createSpacingBuilder(settings);
-        CommonCodeStyleSettings.IndentOptions indentOptions = settings.getIndentOptions(element.getContainingFile().getFileType());
+        CommonCodeStyleSettings.IndentOptions indentOptions = resolveIndentOptions(settings);
         int indentSize = resolveIndentSize(indentOptions);
-        boolean useTabs = indentOptions.USE_TAB_CHARACTER;
+        boolean useTabs = indentOptions != null && indentOptions.USE_TAB_CHARACTER;
 
         int rightMargin = settings.getRightMargin(CypherLanguage.INSTANCE);
         ASTNode node = element.getNode();
@@ -51,8 +51,19 @@ public class CypherFormattingModelBuilder implements FormattingModelBuilder {
     }
 
     /**
-     * Uses IntelliJ indent settings when available, falling back to four spaces to match the bundled formatter.
+     * Tries language-specific indent options first, then falls back to the project-wide "Other" settings.
+     * This ensures Cypher files follow the same indent size as other file types when no Cypher-specific
+     * settings have been configured.
      */
+    private CommonCodeStyleSettings.IndentOptions resolveIndentOptions(CodeStyleSettings settings) {
+        CommonCodeStyleSettings langSettings = settings.getCommonSettings(CypherLanguage.INSTANCE);
+        CommonCodeStyleSettings.IndentOptions langIndent = langSettings.getIndentOptions();
+        if (langIndent != null && langIndent.INDENT_SIZE > 0) {
+            return langIndent;
+        }
+        return settings.OTHER_INDENT_OPTIONS;
+    }
+
     private int resolveIndentSize(CommonCodeStyleSettings.IndentOptions indentOptions) {
         if (indentOptions != null && indentOptions.INDENT_SIZE > 0) {
             return indentOptions.INDENT_SIZE;
