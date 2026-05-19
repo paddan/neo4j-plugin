@@ -30,6 +30,8 @@ public class CypherAnnotator implements Annotator {
             "DETACH:DELETE"
     );
 
+    private static final Set<String> SUBQUERY_KEYWORDS = Set.of("CALL", "EXISTS", "COLLECT");
+
     record LeafToken(IElementType type, String text, TextRange range) {}
 
     record Annotation(
@@ -89,6 +91,8 @@ public class CypherAnnotator implements Annotator {
         Deque<LeafToken> parenStack = new ArrayDeque<>();
         Deque<LeafToken> bracketStack = new ArrayDeque<>();
         Deque<LeafToken> braceStack = new ArrayDeque<>();
+        // true = map literal {}, false = subquery block CALL{}/EXISTS{}
+        Deque<Boolean> braceIsMapStack = new ArrayDeque<>();
 
         String lastClauseKeyword = null;
         boolean seenContentAfterClause = false;
@@ -104,6 +108,11 @@ public class CypherAnnotator implements Annotator {
                 bracketStack.push(tok);
             } else if (type == CypherTokenTypes.BRACE_OPEN) {
                 braceStack.push(tok);
+                LeafToken prevTok = prevSignificant(tokens, i);
+                boolean isSubquery = prevTok != null
+                        && prevTok.type() == CypherTokenTypes.KEYWORD
+                        && SUBQUERY_KEYWORDS.contains(prevTok.text().toUpperCase(Locale.ENGLISH));
+                braceIsMapStack.push(!isSubquery);
             } else if (type == CypherTokenTypes.PAREN_CLOSE) {
                 if (parenStack.isEmpty()) result.add(Annotation.error(tok.range(), "Unmatched ')'"));
                 else parenStack.pop();
@@ -112,15 +121,18 @@ public class CypherAnnotator implements Annotator {
                 else bracketStack.pop();
             } else if (type == CypherTokenTypes.BRACE_CLOSE) {
                 if (braceStack.isEmpty()) result.add(Annotation.error(tok.range(), "Unmatched '}'"));
-                else braceStack.pop();
+                else {
+                    braceStack.pop();
+                    braceIsMapStack.pop();
+                }
             }
 
             // Semantic highlighting
             if (type == CypherTokenTypes.IDENTIFIER) {
-                LeafToken prev = prevSignificant(tokens, i);
                 LeafToken next = nextSignificant(tokens, i);
 
-                if (prev != null && prev.type() == CypherTokenTypes.COLON) {
+                boolean insideMapBrace = !braceIsMapStack.isEmpty() && braceIsMapStack.peek();
+                if (!insideMapBrace && isInLabelContext(tokens, i)) {
                     if (!bracketStack.isEmpty()) {
                         result.add(Annotation.highlight(tok.range(), CypherSyntaxHighlighter.RELATIONSHIP_TYPE));
                     } else {
@@ -128,7 +140,7 @@ public class CypherAnnotator implements Annotator {
                     }
                 } else if (next != null && next.type() == CypherTokenTypes.PAREN_OPEN) {
                     result.add(Annotation.highlight(tok.range(), CypherSyntaxHighlighter.FUNCTION_NAME));
-                } else if (next != null && next.type() == CypherTokenTypes.COLON && !braceStack.isEmpty()) {
+                } else if (next != null && next.type() == CypherTokenTypes.COLON && insideMapBrace) {
                     result.add(Annotation.highlight(tok.range(), CypherSyntaxHighlighter.PROPERTY_KEY));
                 }
             }
@@ -157,6 +169,26 @@ public class CypherAnnotator implements Annotator {
         for (LeafToken tok : braceStack) result.add(Annotation.error(tok.range(), "Unmatched '{'"));
 
         return result;
+    }
+
+    // Returns true if tokens[i] is in a label/reltype position: directly after :,
+    // or after a | pipe chain that originates from a :.  E.g. :Movie|Actor|Director.
+    private boolean isInLabelContext(List<LeafToken> tokens, int i) {
+        int j = i - 1;
+        while (j >= 0) {
+            LeafToken t = tokens.get(j);
+            if (t.type() == TokenType.WHITE_SPACE) { j--; continue; }
+            if (t.type() == CypherTokenTypes.COLON) return true;
+            if (t.type() == CypherTokenTypes.OPERATOR && "|".equals(t.text())) {
+                j--;
+                while (j >= 0 && tokens.get(j).type() == TokenType.WHITE_SPACE) j--;
+                if (j < 0 || tokens.get(j).type() != CypherTokenTypes.IDENTIFIER) return false;
+                j--;
+                continue;
+            }
+            return false;
+        }
+        return false;
     }
 
     private LeafToken prevSignificant(List<LeafToken> tokens, int i) {

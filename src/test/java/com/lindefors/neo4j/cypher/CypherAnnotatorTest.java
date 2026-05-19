@@ -194,6 +194,83 @@ class CypherAnnotatorTest {
     }
 
     @Test
+    void pipeSeparatedLabelsAllHighlightedAsLabel() {
+        // (n:Movie|Actor|Director) — all three labels should be LABEL
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.PAREN_OPEN, "(",
+                CypherTokenTypes.IDENTIFIER, "n",
+                CypherTokenTypes.COLON, ":",
+                CypherTokenTypes.IDENTIFIER, "Movie",
+                CypherTokenTypes.OPERATOR, "|",
+                CypherTokenTypes.IDENTIFIER, "Actor",
+                CypherTokenTypes.OPERATOR, "|",
+                CypherTokenTypes.IDENTIFIER, "Director",
+                CypherTokenTypes.PAREN_CLOSE, ")"
+        ));
+        var highlights = anns.stream().filter(a -> a.attributes() != null).toList();
+        assertEquals(3, highlights.size());
+        assertTrue(highlights.stream().allMatch(a -> a.attributes() == CypherSyntaxHighlighter.LABEL));
+    }
+
+    @Test
+    void pipeSeparatedRelationshipTypesAllHighlightedAsRelType() {
+        // [:KNOWS|LIKES] — both should be RELATIONSHIP_TYPE
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.BRACKET_OPEN, "[",
+                CypherTokenTypes.COLON, ":",
+                CypherTokenTypes.IDENTIFIER, "KNOWS",
+                CypherTokenTypes.OPERATOR, "|",
+                CypherTokenTypes.IDENTIFIER, "LIKES",
+                CypherTokenTypes.BRACKET_CLOSE, "]"
+        ));
+        var highlights = anns.stream().filter(a -> a.attributes() != null).toList();
+        assertEquals(2, highlights.size());
+        assertTrue(highlights.stream().allMatch(a -> a.attributes() == CypherSyntaxHighlighter.RELATIONSHIP_TYPE));
+    }
+
+    @Test
+    void labelsInsideSubqueryBlockAreHighlighted() {
+        // CALL { :Person } — Person should still be LABEL inside a subquery brace
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.KEYWORD, "CALL",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.BRACE_OPEN, "{",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.COLON, ":",
+                CypherTokenTypes.IDENTIFIER, "Person",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.BRACE_CLOSE, "}"
+        ));
+        var highlights = anns.stream().filter(a -> a.attributes() != null).toList();
+        assertEquals(1, highlights.size());
+        assertEquals(CypherSyntaxHighlighter.LABEL, highlights.get(0).attributes());
+    }
+
+    @Test
+    void mapValueAfterColonIsNotHighlightedAsLabel() {
+        // { actor: node, director: director_name } — values must NOT be LABEL
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.BRACE_OPEN, "{",
+                CypherTokenTypes.IDENTIFIER, "actor",
+                CypherTokenTypes.COLON, ":",
+                CypherTokenTypes.IDENTIFIER, "node",
+                CypherTokenTypes.OPERATOR, ",",
+                CypherTokenTypes.IDENTIFIER, "director",
+                CypherTokenTypes.COLON, ":",
+                CypherTokenTypes.IDENTIFIER, "director_name",
+                CypherTokenTypes.BRACE_CLOSE, "}"
+        ));
+        var labels = anns.stream()
+                .filter(a -> a.attributes() == CypherSyntaxHighlighter.LABEL)
+                .toList();
+        assertTrue(labels.isEmpty(), "map values should not be highlighted as labels");
+        var propKeys = anns.stream()
+                .filter(a -> a.attributes() == CypherSyntaxHighlighter.PROPERTY_KEY)
+                .toList();
+        assertEquals(2, propKeys.size(), "actor and director should be property keys");
+    }
+
+    @Test
     void clauseWithContentThenNewClauseDoesNotWarn() {
         // MATCH (n) RETURN n — content between MATCH and RETURN
         var anns = annotator.computeAnnotations(tokens(
