@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.14] — 2026-05-19
+
+### Fixed
+- Pipe-separerade labels och relationship types (`Movie|Actor|Director`, `KNOWS|LIKES`) highlightas nu alla korrekt, inte bara den första
+- Map-värden (`{ actor: node }`) highlightas inte längre felaktigt som node labels
+- Labels inuti subquery-block (`CALL { }`, `EXISTS { }`) highlightas korrekt
+
 ## [1.0.13] — 2026-05-18
 
 ### Changed
