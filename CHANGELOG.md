@@ -3,14 +3,14 @@
 ## [1.0.14] — 2026-05-19
 
 ### Fixed
-- Pipe-separerade labels och relationship types (`Movie|Actor|Director`, `KNOWS|LIKES`) highlightas nu alla korrekt, inte bara den första
-- Map-värden (`{ actor: node }`) highlightas inte längre felaktigt som node labels
-- Labels inuti subquery-block (`CALL { }`, `EXISTS { }`) highlightas korrekt
+- Pipe-separated labels and relationship types (`Movie|Actor|Director`, `KNOWS|LIKES`) are now all highlighted, not just the first one
+- Map values (`{ actor: node }`) are no longer incorrectly highlighted as node labels
+- Labels inside subquery blocks (`CALL { }`, `EXISTS { }`) are highlighted correctly
 
 ## [1.0.13] — 2026-05-18
 
 ### Changed
-- Build: changeNotes läses nu automatiskt från CHANGELOG.md; lade till `<category>Languages</category>` i plugin.xml för korrekt Marketplace-kategorisering
+- Build: change notes are now read automatically from CHANGELOG.md; added `<category>Languages</category>` to plugin.xml for correct Marketplace categorisation
 
 ## [1.0.12] — 2026-05-18
 
