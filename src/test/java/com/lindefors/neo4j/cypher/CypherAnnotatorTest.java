@@ -194,6 +194,30 @@ class CypherAnnotatorTest {
     }
 
     @Test
+    void relationshipTypeInFullMatchPatternIsHighlighted() {
+        // MATCH (a)-[:ACTED_IN]->(b)
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.KEYWORD, "MATCH",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.PAREN_OPEN, "(",
+                CypherTokenTypes.IDENTIFIER, "a",
+                CypherTokenTypes.PAREN_CLOSE, ")",
+                CypherTokenTypes.OPERATOR, "-",
+                CypherTokenTypes.BRACKET_OPEN, "[",
+                CypherTokenTypes.COLON, ":",
+                CypherTokenTypes.IDENTIFIER, "ACTED_IN",
+                CypherTokenTypes.BRACKET_CLOSE, "]",
+                CypherTokenTypes.OPERATOR, "->",
+                CypherTokenTypes.PAREN_OPEN, "(",
+                CypherTokenTypes.IDENTIFIER, "b",
+                CypherTokenTypes.PAREN_CLOSE, ")"
+        ));
+        var highlights = anns.stream().filter(a -> a.attributes() != null).toList();
+        assertEquals(1, highlights.size());
+        assertEquals(CypherSyntaxHighlighter.RELATIONSHIP_TYPE, highlights.get(0).attributes());
+    }
+
+    @Test
     void pipeSeparatedLabelsAllHighlightedAsLabel() {
         // (n:Movie|Actor|Director) — all three labels should be LABEL
         var anns = annotator.computeAnnotations(tokens(
