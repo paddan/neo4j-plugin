@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.15] — 2026-05-20
+
+### Documentation
+- Translated remaining Swedish CHANGELOG entries to English
+- Added CLAUDE.md with architecture overview and build commands
+
+### Tests
+- Added relationship-type highlighting test for full `MATCH (a)-[:REL]->(b)` pattern
+
 ## [1.0.14] — 2026-05-19
 
 ### Fixed
