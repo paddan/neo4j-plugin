@@ -8,9 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: docker
-    container:
-      image: code.forgejo.org/oci/node:20-bookworm
+    runs-on: codeberg-medium
     steps:
       - uses: actions/checkout@v4
 
