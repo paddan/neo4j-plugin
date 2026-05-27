@@ -1,0 +1,36 @@
+name: Build & Release
+
+on:
+  push:
+    branches: [master]
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: docker
+    container:
+      image: code.forgejo.org/oci/node:20-bookworm
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - run: chmod +x gradlew
+
+      - run: ./gradlew --no-daemon buildPlugin
+
+      - name: Publish Codeberg Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/forgejo-release@v2
+        with:
+          direction: upload
+          url: https://codeberg.org
+          repo: ${{ github.repository }}
+          tag: ${{ github.ref_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          release-dir: build/distributions
+          release-notes-assistant: true
