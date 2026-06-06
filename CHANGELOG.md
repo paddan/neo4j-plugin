@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.0.16] — 2026-06-07
+
+### Added
+- Inline error detection for unterminated string literals, backtick-quoted identifiers, block comments, and `$( … )` parameter expressions
+
+### Fixed
+- Nested parentheses inside `$( … )` parameters (`$(foo(bar))`) are now lexed as a single parameter token
+- Dual-purpose keyword functions (`EXISTS`, `COUNT`, `COLLECT`, …) followed by `(` across a newline are correctly treated as function calls rather than keywords
+- Completion contributor now recognises `EXISTS { }` and `COLLECT { }` as subquery blocks in addition to `CALL { }`, keeping identifier scoping consistent with the annotator
+
+### Changed
+- Identifier keyword lookup avoids the `Locale`/double-allocation path with a dedicated ASCII upper-case helper
+- Shared `SUBQUERY_KEYWORDS` set in `CypherTokenTypes` removes duplicate `CALL`/`EXISTS`/`COLLECT` lists between annotator and completion contributor
+
+### Documentation
+- README aligned with the JDK 21 Gradle toolchain and version-neutral installation instructions
+- `CLAUDE.md` / `AGENTS.md` describe the split between JUnit 5 unit tests and JUnit 3 `BasePlatformTestCase` integration tests
+- `CLAUSE_START_KEYWORDS` documents why `OPTIONAL` is treated as a clause head
+
+### Tests
+- 27 new tests covering the above, including BasePlatformTestCase-based integration tests for completion suppression and the keyword-case post-format processor (121 total, all green)
+
 ## [1.0.15] — 2026-05-20
 
 ### Documentation
