@@ -30,8 +30,6 @@ public class CypherAnnotator implements Annotator {
             "DETACH:DELETE"
     );
 
-    private static final Set<String> SUBQUERY_KEYWORDS = Set.of("CALL", "EXISTS", "COLLECT");
-
     record LeafToken(IElementType type, String text, TextRange range) {}
 
     record Annotation(
@@ -111,7 +109,7 @@ public class CypherAnnotator implements Annotator {
                 LeafToken prevTok = prevSignificant(tokens, i);
                 boolean isSubquery = prevTok != null
                         && prevTok.type() == CypherTokenTypes.KEYWORD
-                        && SUBQUERY_KEYWORDS.contains(prevTok.text().toUpperCase(Locale.ENGLISH));
+                        && CypherTokenTypes.SUBQUERY_KEYWORDS.contains(prevTok.text().toUpperCase(Locale.ENGLISH));
                 braceIsMapStack.push(!isSubquery);
             } else if (type == CypherTokenTypes.PAREN_CLOSE) {
                 if (parenStack.isEmpty()) result.add(Annotation.error(tok.range(), "Unmatched ')'"));
@@ -124,6 +122,17 @@ public class CypherAnnotator implements Annotator {
                 else {
                     braceStack.pop();
                     braceIsMapStack.pop();
+                }
+            }
+
+            // Unterminated literals (strings, backtick identifiers, block comments, $(...) parameters)
+            if (type == CypherTokenTypes.STRING
+                    || type == CypherTokenTypes.IDENTIFIER
+                    || type == CypherTokenTypes.COMMENT
+                    || type == CypherTokenTypes.PARAMETER) {
+                String unterminatedMessage = unterminatedMessage(tok);
+                if (unterminatedMessage != null) {
+                    result.add(Annotation.error(tok.range(), unterminatedMessage));
                 }
             }
 
@@ -169,6 +178,42 @@ public class CypherAnnotator implements Annotator {
         for (LeafToken tok : braceStack) result.add(Annotation.error(tok.range(), "Unmatched '{'"));
 
         return result;
+    }
+
+    @Nullable
+    private static String unterminatedMessage(LeafToken tok) {
+        IElementType type = tok.type();
+        String text = tok.text();
+        if (text == null || text.isEmpty()) return null;
+
+        if (type == CypherTokenTypes.STRING) {
+            char open = text.charAt(0);
+            if (open != '\'' && open != '"') return null;
+            if (text.length() < 2 || text.charAt(text.length() - 1) != open) {
+                return "Unterminated string literal";
+            }
+            return null;
+        }
+        if (type == CypherTokenTypes.IDENTIFIER && text.charAt(0) == '`') {
+            if (text.length() < 2 || text.charAt(text.length() - 1) != '`') {
+                return "Unterminated quoted identifier";
+            }
+            return null;
+        }
+        if (type == CypherTokenTypes.COMMENT && text.startsWith("/*")) {
+            // length < 4 catches the degenerate "/*/" case where endsWith("*/") is true
+            // but the comment is still unterminated (the third '/' is part of the opener).
+            if (!text.endsWith("*/") || text.length() < 4) {
+                return "Unterminated block comment";
+            }
+        }
+        if (type == CypherTokenTypes.PARAMETER && text.length() >= 2
+                && text.charAt(0) == '$' && text.charAt(1) == '(') {
+            if (text.charAt(text.length() - 1) != ')') {
+                return "Unterminated parameter expression";
+            }
+        }
+        return null;
     }
 
     // Returns true if tokens[i] is in a label/reltype position: directly after :,

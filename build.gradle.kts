@@ -21,7 +21,7 @@ intellijPlatform {
         }
         changeNotes = providers.provider {
             val changelog = rootProject.file("CHANGELOG.md").readText()
-            // Extrahera det första versionsblocket (från första ## till nästa ##)
+            // Extract the first version block (from the first ## up to the next ##)
             val rest = changelog.substringAfter("## ")
             val block = if ("\n## " in rest) rest.substringBefore("\n## ") else rest
             val (header, body) = block.split("\n", limit = 2).let {
@@ -63,11 +63,13 @@ java {
 dependencies {
     intellijPlatform {
         intellijIdeaCommunity("2025.1")
+        testFramework(org.jetbrains.intellij.platform.gradle.TestFrameworkType.Platform)
     }
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testRuntimeOnly("junit:junit:4.13.2")
+    testImplementation("org.junit.vintage:junit-vintage-engine")
 }
 
 tasks.test {

@@ -172,6 +172,26 @@ class CypherLexerComprehensiveTest {
         assertEquals("MATCH", tokens.get(1).text);
     }
 
+    // --- Function-as-keyword detection works across newlines ---
+
+    @Test
+    void keywordFunctionFollowedByParenAcrossNewlineLexesAsIdentifier() {
+        // EXISTS\n( — the lexer should look past the newline and treat EXISTS as IDENTIFIER
+        // (function name) because a '(' follows.
+        List<Token> tokens = lex("EXISTS\n(x)");
+        assertEquals(CypherTokenTypes.IDENTIFIER, tokens.get(0).type,
+                "EXISTS before '(' (across newline) should be IDENTIFIER, not KEYWORD");
+        assertEquals("EXISTS", tokens.get(0).text);
+    }
+
+    @Test
+    void keywordFunctionFollowedByParenWithSpacesStaysAsIdentifier() {
+        // Existing inline case stays as it was.
+        List<Token> tokens = lex("COUNT (x)");
+        assertEquals(CypherTokenTypes.IDENTIFIER, tokens.get(0).type);
+        assertEquals("COUNT", tokens.get(0).text);
+    }
+
     // --- Operators lex correctly ---
 
     @Test

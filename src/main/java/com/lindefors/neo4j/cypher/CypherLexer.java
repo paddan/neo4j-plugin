@@ -6,7 +6,6 @@ import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -260,10 +259,11 @@ public class CypherLexer extends LexerBase {
         position++; // consume $
         if (position < endOffset && buffer.charAt(position) == '(') {
             position++; // consume opening paren
-            while (position < endOffset && buffer.charAt(position) != ')') {
-                position++;
-            }
-            if (position < endOffset && buffer.charAt(position) == ')') {
+            int depth = 1;
+            while (position < endOffset && depth > 0) {
+                char c = buffer.charAt(position);
+                if (c == '(') depth++;
+                else if (c == ')') depth--;
                 position++;
             }
             tokenType = CypherTokenTypes.PARAMETER;
@@ -329,7 +329,7 @@ public class CypherLexer extends LexerBase {
         while (position < endOffset && isIdentifierPart(buffer.charAt(position))) {
             position++;
         }
-        String word = buffer.subSequence(tokenStart, position).toString().toUpperCase(Locale.ENGLISH);
+        String word = upperCaseAscii(buffer, tokenStart, position);
         if (KEYWORDS.contains(word) && !(CypherTokenTypes.KEYWORD_FUNCTIONS.contains(word) && nextNonWhitespaceIs('('))) {
             tokenType = CypherTokenTypes.KEYWORD;
         } else {
@@ -389,10 +389,28 @@ public class CypherLexer extends LexerBase {
 
     private boolean nextNonWhitespaceIs(char expected) {
         int peek = position;
-        while (peek < endOffset && (buffer.charAt(peek) == ' ' || buffer.charAt(peek) == '\t')) {
+        while (peek < endOffset) {
+            char c = buffer.charAt(peek);
+            if (c != ' ' && c != '\t' && c != '\n' && c != '\r') break;
             peek++;
         }
         return peek < endOffset && buffer.charAt(peek) == expected;
+    }
+
+    // Builds the upper-case form of buffer[start, end) in a single allocation. Only ASCII
+    // lowercase letters a–z are shifted; all other characters (digits, underscore, Unicode
+    // letters) pass through unchanged. This is correct because the only purpose of the
+    // result is to look up the keyword set, and every Cypher keyword is pure ASCII —
+    // so a Unicode identifier like `mätch` produces `MäTCH`, which won't match `MATCH`
+    // (the desired outcome: it stays an IDENTIFIER). Avoids the allocation and Locale
+    // pitfalls of String.toUpperCase().
+    private static String upperCaseAscii(CharSequence buffer, int start, int end) {
+        char[] chars = new char[end - start];
+        for (int i = 0; i < chars.length; i++) {
+            char c = buffer.charAt(start + i);
+            chars[i] = (c >= 'a' && c <= 'z') ? (char) (c - 32) : c;
+        }
+        return new String(chars);
     }
 
     private boolean isIdentifierStart(char c) {

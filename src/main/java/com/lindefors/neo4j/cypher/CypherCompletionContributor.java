@@ -390,6 +390,6 @@ public class CypherCompletionContributor extends CompletionContributor {
         if (beforeBrace.getNode().getElementType() != CypherTokenTypes.KEYWORD) {
             return false;
         }
-        return "CALL".equalsIgnoreCase(beforeBrace.getText());
+        return CypherTokenTypes.SUBQUERY_KEYWORDS.contains(beforeBrace.getText().toUpperCase(Locale.ENGLISH));
     }
 }

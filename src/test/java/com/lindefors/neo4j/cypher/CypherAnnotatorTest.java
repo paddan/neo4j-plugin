@@ -271,6 +271,40 @@ class CypherAnnotatorTest {
     }
 
     @Test
+    void labelsInsideExistsSubqueryBlockAreHighlighted() {
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.KEYWORD, "EXISTS",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.BRACE_OPEN, "{",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.COLON, ":",
+                CypherTokenTypes.IDENTIFIER, "Person",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.BRACE_CLOSE, "}"
+        ));
+        var highlights = anns.stream().filter(a -> a.attributes() != null).toList();
+        assertEquals(1, highlights.size());
+        assertEquals(CypherSyntaxHighlighter.LABEL, highlights.get(0).attributes());
+    }
+
+    @Test
+    void labelsInsideCollectSubqueryBlockAreHighlighted() {
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.KEYWORD, "COLLECT",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.BRACE_OPEN, "{",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.COLON, ":",
+                CypherTokenTypes.IDENTIFIER, "Person",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.BRACE_CLOSE, "}"
+        ));
+        var highlights = anns.stream().filter(a -> a.attributes() != null).toList();
+        assertEquals(1, highlights.size());
+        assertEquals(CypherSyntaxHighlighter.LABEL, highlights.get(0).attributes());
+    }
+
+    @Test
     void mapValueAfterColonIsNotHighlightedAsLabel() {
         // { actor: node, director: director_name } — values must NOT be LABEL
         var anns = annotator.computeAnnotations(tokens(
@@ -278,7 +312,7 @@ class CypherAnnotatorTest {
                 CypherTokenTypes.IDENTIFIER, "actor",
                 CypherTokenTypes.COLON, ":",
                 CypherTokenTypes.IDENTIFIER, "node",
-                CypherTokenTypes.OPERATOR, ",",
+                CypherTokenTypes.COMMA, ",",
                 CypherTokenTypes.IDENTIFIER, "director",
                 CypherTokenTypes.COLON, ":",
                 CypherTokenTypes.IDENTIFIER, "director_name",
@@ -292,6 +326,106 @@ class CypherAnnotatorTest {
                 .filter(a -> a.attributes() == CypherSyntaxHighlighter.PROPERTY_KEY)
                 .toList();
         assertEquals(2, propKeys.size(), "actor and director should be property keys");
+    }
+
+    // --- unterminated literals ---
+
+    @Test
+    void unterminatedSingleQuotedStringIsError() {
+        // 'abc — no closing quote
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.STRING, "'abc"
+        ));
+        assertEquals(1, anns.size());
+        assertEquals(HighlightSeverity.ERROR, anns.get(0).severity());
+        assertTrue(anns.get(0).message().toLowerCase().contains("unterminated"));
+    }
+
+    @Test
+    void unterminatedDoubleQuotedStringIsError() {
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.STRING, "\"abc"
+        ));
+        assertEquals(1, anns.size());
+        assertEquals(HighlightSeverity.ERROR, anns.get(0).severity());
+    }
+
+    @Test
+    void terminatedStringProducesNoError() {
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.STRING, "'abc'"
+        ));
+        assertTrue(anns.isEmpty());
+    }
+
+    @Test
+    void unterminatedBacktickIdentifierIsError() {
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.IDENTIFIER, "`abc"
+        ));
+        assertEquals(1, anns.size());
+        assertEquals(HighlightSeverity.ERROR, anns.get(0).severity());
+        assertTrue(anns.get(0).message().toLowerCase().contains("unterminated"));
+    }
+
+    @Test
+    void terminatedBacktickIdentifierProducesNoError() {
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.IDENTIFIER, "`abc`"
+        ));
+        assertTrue(anns.isEmpty());
+    }
+
+    @Test
+    void unterminatedBlockCommentIsError() {
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.COMMENT, "/* abc"
+        ));
+        assertEquals(1, anns.size());
+        assertEquals(HighlightSeverity.ERROR, anns.get(0).severity());
+        assertTrue(anns.get(0).message().toLowerCase().contains("unterminated"));
+    }
+
+    @Test
+    void terminatedBlockCommentProducesNoError() {
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.COMMENT, "/* abc */"
+        ));
+        assertTrue(anns.isEmpty());
+    }
+
+    @Test
+    void unterminatedParenthesizedParameterIsError() {
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.PARAMETER, "$(foo"
+        ));
+        assertEquals(1, anns.size());
+        assertEquals(HighlightSeverity.ERROR, anns.get(0).severity());
+        assertTrue(anns.get(0).message().toLowerCase().contains("unterminated"));
+    }
+
+    @Test
+    void terminatedParenthesizedParameterProducesNoError() {
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.PARAMETER, "$(foo)"
+        ));
+        assertTrue(anns.isEmpty());
+    }
+
+    @Test
+    void simpleDollarParameterProducesNoError() {
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.PARAMETER, "$name"
+        ));
+        assertTrue(anns.isEmpty());
+    }
+
+    @Test
+    void lineCommentProducesNoError() {
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.COMMENT, "// trailing"
+        ));
+        assertTrue(anns.isEmpty());
     }
 
     @Test

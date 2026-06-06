@@ -79,6 +79,12 @@ public final class CypherTokenTypes {
     /**
      * Keywords that begin a new Cypher clause and should be placed on their own line by the formatter.
      * Shared by the formatter and completion contributor to avoid duplication.
+     *
+     * <p>{@code OPTIONAL} is included even though it is not a standalone clause — it must be followed
+     * by {@code MATCH}. Listing it here makes the formatter place {@code OPTIONAL MATCH} on its own
+     * line and lets the structure view group it as a clause head. The annotator handles the pair
+     * {@code OPTIONAL MATCH} via {@code VALID_CONSECUTIVE_PAIRS} so it isn't flagged as a missing
+     * clause body.
      */
     public static final Set<String> CLAUSE_START_KEYWORDS = Set.of(
             "ALTER",
@@ -110,6 +116,17 @@ public final class CypherTokenTypes {
             "USE",
             "WHERE",
             "WITH"
+    );
+
+    /**
+     * Keywords that, when immediately followed by {@code {}, introduce a subquery block rather than
+     * a map literal. Shared by the annotator (semantic highlighting) and completion contributor
+     * (identifier scoping) so both treat the same braces as subqueries.
+     */
+    public static final Set<String> SUBQUERY_KEYWORDS = Set.of(
+            "CALL",
+            "EXISTS",
+            "COLLECT"
     );
 
     /**

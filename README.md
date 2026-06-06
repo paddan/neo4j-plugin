@@ -12,10 +12,11 @@ A lightweight IntelliJ IDEA plugin that adds support for Neo4j Cypher files (`.c
 - **Structure view** — top-level clause keywords listed in the Structure panel (`View > Tool Windows > Structure`)
 - **Comments** — `Ctrl+/` for line comments (`//`), `Ctrl+Shift+/` for block comments (`/* */`)
 - **Brace matching** — highlights matching `()`, `[]`, `{}`
+- **Error detection** — unclosed delimiters and unterminated string literals highlighted inline
 
 ## Requirements
 - IntelliJ IDEA 2025.1+ (build 251+; no upper bound — compatible with future versions)
-- JDK 17 (configured via Gradle toolchains)
+- JDK 21 (configured via Gradle toolchains)
 
 ## Build and Run
 - Install dependencies with `asdf install` (if the asdf command is available)
@@ -25,9 +26,9 @@ A lightweight IntelliJ IDEA plugin that adds support for Neo4j Cypher files (`.c
 
 ## Install the Packaged Plugin
 1) Build the ZIP with `./gradlew buildPlugin` (or download the latest release from GitHub).
-2) If you download the Actions artifact: there is a zip file `neo4j-plugin-1.0.10.zip` inside the downloaded `neo4j-plugin.zip` — install that one.
+2) If you download the Actions artifact: there is a zip file `neo4j-plugin-<version>.zip` inside the downloaded `neo4j-plugin.zip` — install that one.
 3) In IntelliJ IDEA: `Settings/Preferences > Plugins > ⚙ > Install Plugin from Disk...`.
-4) Select the plugin ZIP (e.g., `build/distributions/neo4j-plugin-1.0.10.zip` or the downloaded release ZIP), install, and restart the IDE.
+4) Select the plugin ZIP (e.g., `build/distributions/neo4j-plugin-<version>.zip` or the downloaded release ZIP), install, and restart the IDE.
 
 ## Usage
 - Open or create `.cyp` / `.cypher` files to get Cypher syntax highlighting, completion, and formatting.
