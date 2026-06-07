@@ -1,6 +1,6 @@
 # Neo4j Cypher Syntax Highlighter, Code Completion and Formatter (IntelliJ Plugin)
 
-[![Latest Release](https://img.shields.io/github/v/release/paddan/neo4j-plugin?label=Download&logo=github)](https://github.com/paddan/neo4j-plugin/releases/latest)
+[![Latest Release](https://img.shields.io/gitea/v/release/paddan/neo4j-plugin?gitea_url=https%3A%2F%2Fcodeberg.org&label=Download&logo=codeberg)](https://codeberg.org/paddan/neo4j-plugin/releases/latest)
 
 A lightweight IntelliJ IDEA plugin that adds support for Neo4j Cypher files (`.cyp`, `.cypher`).
 
