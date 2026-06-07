@@ -52,6 +52,12 @@ intellijPlatform {
     publishing {
         token = providers.gradleProperty("intellijPlatform.publishingToken")
     }
+
+    pluginVerification {
+        ides {
+            recommended()
+        }
+    }
 }
 
 java {
@@ -63,6 +69,7 @@ java {
 dependencies {
     intellijPlatform {
         intellijIdeaCommunity("2025.1")
+        bundledPlugin("com.intellij.java")
         testFramework(org.jetbrains.intellij.platform.gradle.TestFrameworkType.Platform)
     }
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
@@ -75,4 +82,3 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
-

@@ -1,0 +1,5 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+        <multiHostInjector implementation="com.lindefors.neo4j.cypher.CypherJavaLanguageInjector"/>
+    </extensions>
+</idea-plugin>

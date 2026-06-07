@@ -96,13 +96,23 @@ public class CypherStructureViewElement implements StructureViewTreeElement {
 
         List<CypherStructureViewElement> clauses = new ArrayList<>();
         ASTNode child = element.getNode().getFirstChildNode();
+        int parenDepth = 0;
+        int bracketDepth = 0;
+        int braceDepth = 0;
         while (child != null) {
-            if (child.getElementType() == CypherTokenTypes.KEYWORD) {
+            IElementType type = child.getElementType();
+            if (type == CypherTokenTypes.KEYWORD && parenDepth == 0 && bracketDepth == 0 && braceDepth == 0) {
                 String kw = child.getText().toUpperCase(Locale.ENGLISH);
                 if (CypherTokenTypes.CLAUSE_START_KEYWORDS.contains(kw)) {
                     clauses.add(new CypherStructureViewElement(child.getPsi()));
                 }
             }
+            if (type == CypherTokenTypes.PAREN_OPEN) parenDepth++;
+            else if (type == CypherTokenTypes.PAREN_CLOSE && parenDepth > 0) parenDepth--;
+            else if (type == CypherTokenTypes.BRACKET_OPEN) bracketDepth++;
+            else if (type == CypherTokenTypes.BRACKET_CLOSE && bracketDepth > 0) bracketDepth--;
+            else if (type == CypherTokenTypes.BRACE_OPEN) braceDepth++;
+            else if (type == CypherTokenTypes.BRACE_CLOSE && braceDepth > 0) braceDepth--;
             child = child.getTreeNext();
         }
         return clauses.toArray(EMPTY);

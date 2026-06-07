@@ -262,6 +262,21 @@ public class CypherLexer extends LexerBase {
             int depth = 1;
             while (position < endOffset && depth > 0) {
                 char c = buffer.charAt(position);
+                if (c == '\'' || c == '"' || c == '`') {
+                    scanQuotedContent(c);
+                    continue;
+                }
+                if (c == '/' && position + 1 < endOffset) {
+                    char next = buffer.charAt(position + 1);
+                    if (next == '/') {
+                        scanNestedLineComment();
+                        continue;
+                    }
+                    if (next == '*') {
+                        scanNestedBlockComment();
+                        continue;
+                    }
+                }
                 if (c == '(') depth++;
                 else if (c == ')') depth--;
                 position++;
@@ -276,6 +291,48 @@ public class CypherLexer extends LexerBase {
         }
         tokenType = CypherTokenTypes.PARAMETER;
         tokenEnd = position;
+    }
+
+    private void scanQuotedContent(char quote) {
+        position++; // consume opening delimiter
+        while (position < endOffset) {
+            char c = buffer.charAt(position);
+            if (c == '\\' && quote != '`' && position + 1 < endOffset) {
+                position += 2;
+                continue;
+            }
+            if (c == quote) {
+                if (position + 1 < endOffset && buffer.charAt(position + 1) == quote) {
+                    position += 2;
+                    continue;
+                }
+                position++;
+                return;
+            }
+            position++;
+        }
+    }
+
+    private void scanNestedLineComment() {
+        position += 2;
+        while (position < endOffset) {
+            char c = buffer.charAt(position);
+            if (c == '\n' || c == '\r') {
+                return;
+            }
+            position++;
+        }
+    }
+
+    private void scanNestedBlockComment() {
+        position += 2;
+        while (position < endOffset) {
+            if (buffer.charAt(position) == '*' && position + 1 < endOffset && buffer.charAt(position + 1) == '/') {
+                position += 2;
+                return;
+            }
+            position++;
+        }
     }
 
     /**
@@ -318,6 +375,10 @@ public class CypherLexer extends LexerBase {
             while (position < endOffset) {
                 char c = buffer.charAt(position++);
                 if (c == '`') {
+                    if (position < endOffset && buffer.charAt(position) == '`') {
+                        position++;
+                        continue;
+                    }
                     break;
                 }
             }

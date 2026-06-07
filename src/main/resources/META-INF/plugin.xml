@@ -16,17 +16,20 @@
           <li><strong>Code completion</strong> — all Cypher keywords and the complete Neo4j 5.x built-in function catalog.</li>
           <li><strong>Auto-formatter</strong> — consistent indentation and automatic keyword uppercasing on
               <em>Code → Reformat Code</em> (<kbd>Ctrl+Alt+L</kbd> / <kbd>⌘⌥L</kbd>).</li>
-          <li><strong>Code folding</strong> — collapse <code>MATCH</code>, <code>WHERE</code>, <code>WITH</code>,
-              and other clause blocks to reduce visual noise in long queries.</li>
+          <li><strong>Code folding</strong> — collapse multi-line delimiters and block comments to reduce visual noise
+              in long queries.</li>
           <li><strong>Structure view</strong> — top-level Cypher clauses listed in the Structure panel for quick navigation.</li>
           <li><strong>Brace matching</strong> — instant visual pairing of <code>()</code>, <code>[]</code>, and <code>{}</code>.</li>
           <li><strong>Comment toggling</strong> — <kbd>Ctrl+/</kbd> for line comments (<code>//</code>),
               <kbd>Ctrl+Shift+/</kbd> for block comments (<code>/* */</code>).</li>
           <li><strong>Error detection</strong> — unclosed delimiters highlighted inline.</li>
+          <li><strong>Java language injection</strong> — Cypher support inside string literals passed directly or
+              through resolvable variables to Neo4j driver <code>run(...)</code> methods.</li>
         </ul>
 
         <h2>Supported file types</h2>
-        <p>Activates automatically for <code>.cyp</code> and <code>.cypher</code> files.</p>
+        <p>Activates automatically for <code>.cyp</code> and <code>.cypher</code> files, and for resolvable Cypher
+           query strings in Java files.</p>
 
         <h2>Requirements</h2>
         <p>Any JetBrains IDE 2025.1 or newer.</p>
@@ -37,6 +40,7 @@
 
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.lang</depends>
+    <depends optional="true" config-file="cypher-java.xml">com.intellij.modules.java</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- Register both .cyp and .cypher extensions -->

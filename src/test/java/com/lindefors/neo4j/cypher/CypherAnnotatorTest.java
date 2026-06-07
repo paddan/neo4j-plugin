@@ -161,6 +161,19 @@ class CypherAnnotatorTest {
     }
 
     @Test
+    void crossedDelimitersProduceErrors() {
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.PAREN_OPEN, "(",
+                CypherTokenTypes.BRACKET_OPEN, "[",
+                CypherTokenTypes.PAREN_CLOSE, ")",
+                CypherTokenTypes.BRACKET_CLOSE, "]"
+        ));
+
+        var errors = anns.stream().filter(a -> a.severity() == HighlightSeverity.ERROR).toList();
+        assertFalse(errors.isEmpty(), "Crossed delimiters must not be accepted as balanced");
+    }
+
+    @Test
     void consecutiveClauseKeywordsProducesWarning() {
         // MATCH RETURN — no content between clause starters
         var anns = annotator.computeAnnotations(tokens(
@@ -191,6 +204,44 @@ class CypherAnnotatorTest {
                 CypherTokenTypes.KEYWORD, "DELETE"
         ));
         assertTrue(anns.isEmpty());
+    }
+
+    @Test
+    void mergeActionSetDoesNotWarn() {
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.KEYWORD, "ON",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.KEYWORD, "CREATE",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.KEYWORD, "SET",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.IDENTIFIER, "person",
+                CypherTokenTypes.DOT, ".",
+                CypherTokenTypes.IDENTIFIER, "createdAt",
+                CypherTokenTypes.OPERATOR, "=",
+                CypherTokenTypes.IDENTIFIER, "datetime",
+                CypherTokenTypes.PAREN_OPEN, "(",
+                CypherTokenTypes.PAREN_CLOSE, ")",
+                TokenType.WHITE_SPACE, "\n",
+                CypherTokenTypes.KEYWORD, "ON",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.KEYWORD, "MATCH",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.KEYWORD, "SET"
+        ));
+
+        assertTrue(anns.stream().noneMatch(a -> a.severity() == HighlightSeverity.WARNING));
+    }
+
+    @Test
+    void matchSetWithoutOnStillWarns() {
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.KEYWORD, "MATCH",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.KEYWORD, "SET"
+        ));
+
+        assertTrue(anns.stream().anyMatch(a -> a.severity() == HighlightSeverity.WARNING));
     }
 
     @Test
@@ -299,6 +350,42 @@ class CypherAnnotatorTest {
                 TokenType.WHITE_SPACE, " ",
                 CypherTokenTypes.BRACE_CLOSE, "}"
         ));
+        var highlights = anns.stream().filter(a -> a.attributes() != null).toList();
+        assertEquals(1, highlights.size());
+        assertEquals(CypherSyntaxHighlighter.LABEL, highlights.get(0).attributes());
+    }
+
+    @Test
+    void labelsInsideCountSubqueryBlockAreHighlighted() {
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.KEYWORD, "COUNT",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.BRACE_OPEN, "{",
+                CypherTokenTypes.COLON, ":",
+                CypherTokenTypes.IDENTIFIER, "Person",
+                CypherTokenTypes.BRACE_CLOSE, "}"
+        ));
+
+        var highlights = anns.stream().filter(a -> a.attributes() != null).toList();
+        assertEquals(1, highlights.size());
+        assertEquals(CypherSyntaxHighlighter.LABEL, highlights.get(0).attributes());
+    }
+
+    @Test
+    void labelsInsideScopedCallSubqueryBlockAreHighlighted() {
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.KEYWORD, "CALL",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.PAREN_OPEN, "(",
+                CypherTokenTypes.IDENTIFIER, "p",
+                CypherTokenTypes.PAREN_CLOSE, ")",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.BRACE_OPEN, "{",
+                CypherTokenTypes.COLON, ":",
+                CypherTokenTypes.IDENTIFIER, "Person",
+                CypherTokenTypes.BRACE_CLOSE, "}"
+        ));
+
         var highlights = anns.stream().filter(a -> a.attributes() != null).toList();
         assertEquals(1, highlights.size());
         assertEquals(CypherSyntaxHighlighter.LABEL, highlights.get(0).attributes());

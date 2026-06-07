@@ -387,9 +387,38 @@ public class CypherCompletionContributor extends CompletionContributor {
         if (beforeBrace == null || beforeBrace.getNode() == null) {
             return false;
         }
-        if (beforeBrace.getNode().getElementType() != CypherTokenTypes.KEYWORD) {
-            return false;
+        if (beforeBrace.getNode().getElementType() == CypherTokenTypes.KEYWORD) {
+            return CypherTokenTypes.SUBQUERY_KEYWORDS.contains(beforeBrace.getText().toUpperCase(Locale.ENGLISH));
         }
-        return CypherTokenTypes.SUBQUERY_KEYWORDS.contains(beforeBrace.getText().toUpperCase(Locale.ENGLISH));
+        if (beforeBrace.getNode().getElementType() == CypherTokenTypes.PAREN_CLOSE) {
+            PsiElement scopeOpen = findMatchingOpening(beforeBrace, CypherTokenTypes.PAREN_OPEN, CypherTokenTypes.PAREN_CLOSE);
+            PsiElement beforeScope = scopeOpen == null ? null : PsiTreeUtil.prevVisibleLeaf(scopeOpen);
+            return beforeScope != null
+                    && beforeScope.getNode() != null
+                    && beforeScope.getNode().getElementType() == CypherTokenTypes.KEYWORD
+                    && "CALL".equalsIgnoreCase(beforeScope.getText());
+        }
+        return false;
+    }
+
+    @Nullable
+    private static PsiElement findMatchingOpening(@NotNull PsiElement closing,
+                                                  @NotNull IElementType openingType,
+                                                  @NotNull IElementType closingType) {
+        int balance = 0;
+        PsiElement current = PsiTreeUtil.prevLeaf(closing);
+        while (current != null) {
+            IElementType type = current.getNode().getElementType();
+            if (type == closingType) {
+                balance++;
+            } else if (type == openingType) {
+                if (balance == 0) {
+                    return current;
+                }
+                balance--;
+            }
+            current = PsiTreeUtil.prevLeaf(current);
+        }
+        return null;
     }
 }

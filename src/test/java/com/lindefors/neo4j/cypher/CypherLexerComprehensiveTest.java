@@ -128,6 +128,25 @@ class CypherLexerComprehensiveTest {
         assertEquals("`weird name`", tokens.get(5).text);
     }
 
+    @Test
+    void doubledBacktickInsideQuotedIdentifierDoesNotEndToken() {
+        List<Token> tokens = lex("RETURN `a``b`");
+
+        assertEquals(2, tokens.size());
+        assertEquals(CypherTokenTypes.KEYWORD, tokens.get(0).type);
+        assertEquals(CypherTokenTypes.IDENTIFIER, tokens.get(1).type);
+        assertEquals("`a``b`", tokens.get(1).text);
+    }
+
+    @Test
+    void collectFunctionAndSubqueryAreDisambiguated() {
+        List<Token> functionTokens = lex("collect(n)");
+        List<Token> subqueryTokens = lex("COLLECT { MATCH (n) RETURN n }");
+
+        assertEquals(CypherTokenTypes.IDENTIFIER, functionTokens.get(0).type);
+        assertEquals(CypherTokenTypes.KEYWORD, subqueryTokens.get(0).type);
+    }
+
     // --- Unterminated backtick identifier spans to EOF ---
 
     @Test

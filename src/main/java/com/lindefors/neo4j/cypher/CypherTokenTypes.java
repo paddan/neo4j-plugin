@@ -26,7 +26,7 @@ public final class CypherTokenTypes {
             "UNWIND", "CREATE", "MERGE", "DELETE", "DETACH", "SET", "REMOVE",
             "FOREACH", "CALL", "YIELD", "LOAD", "CSV", "HEADERS", "FIELDTERMINATOR", "FROM",
             "ORDER", "BY", "SKIP", "LIMIT", "ASC", "DESC",
-            "UNION", "ALL", "DISTINCT", "AS",
+            "UNION", "ALL", "DISTINCT", "AS", "COLLECT",
             "PROFILE", "EXPLAIN",
             "ALTER", "DROP",
 
@@ -68,12 +68,12 @@ public final class CypherTokenTypes {
     )));
 
     /**
-     * Keywords that are also built-in functions. The lexer uses one-character lookahead: when one of
-     * these names is immediately followed by {@code (}, it is emitted as {@link #IDENTIFIER} so that
+     * Keywords that are also built-in functions. When one of these names is followed by {@code (}
+     * after optional whitespace, it is emitted as {@link #IDENTIFIER} so that
      * function-call syntax gets function highlighting/completion rather than keyword treatment.
      */
     public static final Set<String> KEYWORD_FUNCTIONS = Set.of(
-            "ALL", "ANY", "COUNT", "EXISTS", "POINT", "RANGE", "REPLACE"
+            "ALL", "ANY", "COLLECT", "COUNT", "EXISTS", "POINT", "RANGE", "REPLACE"
     );
 
     /**
@@ -125,6 +125,7 @@ public final class CypherTokenTypes {
      */
     public static final Set<String> SUBQUERY_KEYWORDS = Set.of(
             "CALL",
+            "COUNT",
             "EXISTS",
             "COLLECT"
     );

@@ -69,6 +69,13 @@ public class CypherCompletionContributorTest extends BasePlatformTestCase {
                 result.contains("someVar"));
     }
 
+    public void testScopedCallSubqueryTreatsLabelPredicateIdentifierAsVisible() {
+        Set<String> result = completionsSet("CALL (p) { RETURN p:Person, <caret> }");
+
+        assertTrue("identifier in scoped CALL subquery should be suggested: " + result,
+                result.contains("p"));
+    }
+
     public void testNoCompletionInsideStringLiteral() {
         // Inside a string literal no Cypher keywords should be offered — use a caret position with
         // no prefix so a broken contributor would dump the full keyword set.

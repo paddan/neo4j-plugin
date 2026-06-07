@@ -127,6 +127,26 @@ class CypherLexerParameterTest {
     }
 
     @Test
+    void lexesParenthesizedParameterWithParenthesisInsideString() {
+        List<Token> tokens = lex("$(replace(value, ')', ''))");
+
+        assertEquals(1, tokens.size(), "Single parameter token expected");
+        Token param = tokens.get(0);
+        assertEquals(CypherTokenTypes.PARAMETER, param.type);
+        assertEquals("$(replace(value, ')', ''))", param.text);
+    }
+
+    @Test
+    void lexesParenthesizedParameterWithParenthesisInsideComment() {
+        List<Token> tokens = lex("$(foo(/* ) */ bar))");
+
+        assertEquals(1, tokens.size(), "Single parameter token expected");
+        Token param = tokens.get(0);
+        assertEquals(CypherTokenTypes.PARAMETER, param.type);
+        assertEquals("$(foo(/* ) */ bar))", param.text);
+    }
+
+    @Test
     void lexesLegacyBracedParameter() {
         List<Token> tokens = lex("{paramName}");
 

@@ -42,13 +42,15 @@ This is an IntelliJ Platform plugin for Neo4j Cypher (`.cyp`, `.cypher` files). 
 
 **Flat AST.** `CypherParser` deliberately builds a flat tree rather than a grammar-driven parse tree. This keeps the implementation simple; all analysis (completion, folding, structure view) works by scanning the flat token list directly.
 
-**Hand-written lexer.** `CypherLexer` is a ~400-line character scanner with no grammar tooling. Token precedence order: comments/strings → numbers → parameters → identifiers (keyword check) → punctuation → operators. Dual-purpose words (ALL, ANY, COUNT, EXISTS, POINT, RANGE, REPLACE) are emitted as IDENTIFIER when followed by `(`, otherwise as KEYWORD.
+**Hand-written lexer.** `CypherLexer` is a ~400-line character scanner with no grammar tooling. Token precedence order: comments/strings → numbers → parameters → identifiers (keyword check) → punctuation → operators. Dual-purpose words (ALL, ANY, COLLECT, COUNT, EXISTS, POINT, RANGE, REPLACE) are emitted as IDENTIFIER when followed by `(`, otherwise as KEYWORD.
 
-**Semantic highlighting in `CypherAnnotator`.** The annotator walks tokens with three depth-tracking stacks (`parenStack`, `bracketStack`, `braceStack`). A parallel `braceIsMapStack` (Boolean deque) distinguishes map literals `{}` from subquery blocks `CALL {}` / `EXISTS {}` by checking the keyword that precedes `{`. This is required so map values aren't mistakenly coloured as labels.
+**Semantic highlighting in `CypherAnnotator`.** The annotator walks tokens with a shared delimiter stack so mismatched and crossed delimiters are detected correctly. A parallel `braceIsMapStack` (Boolean deque) distinguishes map literals `{}` from subquery blocks such as `CALL {}`, `CALL () {}`, `EXISTS {}`, `COUNT {}`, and `COLLECT {}`. This is required so map values aren't mistakenly coloured as labels.
 
 Label/reltype detection uses `isInLabelContext()` which walks backward through `(IDENTIFIER |)*` chains to find a root `:`, enabling pipe-separated multi-label patterns like `(n:Movie|Actor|Director)` to fully highlight.
 
 **Completion heuristics.** `CypherCompletionContributor` uses backward token scanning to detect graph pattern context and suppress noisy suggestions inside `()` / `[]` node/relationship patterns.
+
+**Java language injection.** `CypherJavaLanguageInjector` is registered through the optional `cypher-java.xml` descriptor. It injects Cypher into Java string literals that flow directly or through resolvable variables to `org.neo4j.driver.*.run(...)`. When the Neo4j driver is absent from the project classpath, an explicit `org.neo4j.driver` import provides a conservative resolution fallback. Analysis is deliberately limited to the containing Java file and rejects dynamically assembled or reassigned values.
 
 ### Other components
 
