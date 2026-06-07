@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.0.17] — 2026-06-07
+
+### Added
+- Java language injection: Cypher highlighting, completion, and error detection inside string literals flowing into `org.neo4j.driver.*.run(...)` — directly, through local variables, simple aliases, or fields declared in the same Java file. Dynamically assembled values are deliberately ignored
+- Optional `cypher-java.xml` plugin descriptor gated on `com.intellij.modules.java`, so the plugin loads in IDEs without the Java module too
+
+### Fixed
+- Annotator no longer warns about "missing clause body" for `MERGE … ON CREATE SET` and `ON MATCH SET`
+- Annotator now flags crossed delimiters (`( [ ) ]`) as errors via a single ordered delimiter stack
+- Structure view only lists top-level clause keywords; keywords inside nested `()` / `[]` / `{}` are ignored
+- Lexer correctly skips quoted strings, line comments, and block comments inside `$( … )` legacy parameters, so embedded parens don't break parameter scanning
+- Lexer treats doubled backticks (` `` `) as escape sequences inside backtick-quoted identifiers
+
+### Changed
+- Annotator subquery-brace detection covers `COUNT { }` and scoped `CALL (var) { }` in addition to `CALL { }`, `EXISTS { }`, and `COLLECT { }`
+- Completion contributor recognises scoped `CALL () { }` as a subquery block
+
+### Documentation
+- README, `CLAUDE.md`, and `AGENTS.md` document the Java injection behaviour and the new `cypher-java.xml` descriptor
+- `examples/CypherInjectionExamples.java` shows supported and unsupported injection cases
+
+### CI
+- Forgejo and GitHub workflows run `./gradlew verifyPlugin` against the recommended IDE set
+- GitHub build pipeline upgraded to JDK 21 to match the Gradle toolchain
+
+### Tests
+- New tests for the Java injector (resolved and unresolved driver classpath), structure view nesting, crossed delimiters, MERGE `ON SET`, and labels inside `COUNT { }` / scoped `CALL () { }` subquery blocks
+
 ## [1.0.16] — 2026-06-07
 
 ### Added
