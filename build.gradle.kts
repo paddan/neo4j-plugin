@@ -55,7 +55,7 @@ intellijPlatform {
 
     pluginVerification {
         ides {
-            recommended()
+            current()
         }
     }
 }
