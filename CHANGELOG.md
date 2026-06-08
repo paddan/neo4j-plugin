@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.18] — 2026-06-08
+
+### Changed
+- Local Claude settings, generated agent worktrees, and their build artifacts are excluded from version control
+
+### Documentation
+- Added the completed semantic-highlighting design and implementation plan as historical documentation
+- Updated the historical design to reflect the current ordered delimiter stack, map/subquery distinction, label-chain highlighting, and unterminated-literal detection
+
 ## [1.0.17] — 2026-06-07
 
 ### Added

@@ -48,3 +48,4 @@ bin/
 .DS_Store
 /graphify-out/
 /.understand-anything/
+/.claude/
