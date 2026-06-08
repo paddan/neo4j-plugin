@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.0.19] — 2026-06-08
+
+### Changed
+- Codeberg release workflow no longer runs `verifyPlugin`; the shared runner consistently hit podman socket timeouts. Run the verifier locally before tagging instead
+
 ## [1.0.18] — 2026-06-08
 
 ### Changed
