@@ -82,9 +82,8 @@ public final class CypherTokenTypes {
      *
      * <p>{@code OPTIONAL} is included even though it is not a standalone clause — it must be followed
      * by {@code MATCH}. Listing it here makes the formatter place {@code OPTIONAL MATCH} on its own
-     * line and lets the structure view group it as a clause head. The annotator handles the pair
-     * {@code OPTIONAL MATCH} via {@code VALID_CONSECUTIVE_PAIRS} so it isn't flagged as a missing
-     * clause body.
+     * line and lets the structure view group it as a clause head. Compound clause handling is shared
+     * through {@link CypherTokenContext}.
      */
     public static final Set<String> CLAUSE_START_KEYWORDS = Set.of(
             "ALTER",

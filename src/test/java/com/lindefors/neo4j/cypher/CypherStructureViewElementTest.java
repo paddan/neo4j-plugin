@@ -28,4 +28,18 @@ public class CypherStructureViewElementTest extends BasePlatformTestCase {
         assertTrue(presentations.get(1).startsWith("CALL"));
         assertTrue(presentations.get(2).startsWith("RETURN"));
     }
+
+    public void testCompoundClausesAppearOnceInStructureView() {
+        myFixture.configureByText("test.cyp", """
+                OPTIONAL MATCH (n)
+                DETACH DELETE n
+                """);
+
+        TreeElement[] children = new CypherStructureViewElement(myFixture.getFile()).getChildren();
+        List<String> presentations = Arrays.stream(children)
+                .map(child -> child.getPresentation().getPresentableText())
+                .toList();
+
+        assertEquals(List.of("OPTIONAL MATCH ( n )", "DETACH DELETE n"), presentations);
+    }
 }

@@ -48,4 +48,20 @@ public class CypherKeywordCasePostFormatProcessorTest extends BasePlatformTestCa
         assertTrue("'Match' should become 'MATCH': " + result, result.contains("MATCH"));
         assertTrue("'ReTuRn' should become 'RETURN': " + result, result.contains("RETURN"));
     }
+
+    public void testSubqueryLabelsAndRelationshipTypesKeepTightColonSpacing() {
+        String result = reformat("""
+                MATCH (person)
+                WHERE EXISTS {
+                    MATCH (person:Person)-[:KNOWS]->(friend)
+                    RETURN friend
+                }
+                RETURN person
+                """);
+
+        assertTrue("node labels inside subqueries should keep tight colon spacing: " + result,
+                result.contains("person:Person"));
+        assertTrue("relationship types inside subqueries should keep tight colon spacing: " + result,
+                result.contains("[:KNOWS]"));
+    }
 }

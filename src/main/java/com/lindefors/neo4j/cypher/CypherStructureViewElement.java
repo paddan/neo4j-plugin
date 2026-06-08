@@ -99,11 +99,17 @@ public class CypherStructureViewElement implements StructureViewTreeElement {
         int parenDepth = 0;
         int bracketDepth = 0;
         int braceDepth = 0;
+        ASTNode previousTopLevelSignificant = null;
         while (child != null) {
             IElementType type = child.getElementType();
             if (type == CypherTokenTypes.KEYWORD && parenDepth == 0 && bracketDepth == 0 && braceDepth == 0) {
                 String kw = child.getText().toUpperCase(Locale.ENGLISH);
-                if (CypherTokenTypes.CLAUSE_START_KEYWORDS.contains(kw)) {
+                String previousKeyword = previousTopLevelSignificant != null
+                        && previousTopLevelSignificant.getElementType() == CypherTokenTypes.KEYWORD
+                        ? previousTopLevelSignificant.getText()
+                        : null;
+                if (CypherTokenTypes.CLAUSE_START_KEYWORDS.contains(kw)
+                        && !CypherTokenContext.isCompoundClauseContinuation(previousKeyword, kw)) {
                     clauses.add(new CypherStructureViewElement(child.getPsi()));
                 }
             }
@@ -113,6 +119,10 @@ public class CypherStructureViewElement implements StructureViewTreeElement {
             else if (type == CypherTokenTypes.BRACKET_CLOSE && bracketDepth > 0) bracketDepth--;
             else if (type == CypherTokenTypes.BRACE_OPEN) braceDepth++;
             else if (type == CypherTokenTypes.BRACE_CLOSE && braceDepth > 0) braceDepth--;
+            if (parenDepth == 0 && bracketDepth == 0 && braceDepth == 0
+                    && type != TokenType.WHITE_SPACE && type != CypherTokenTypes.COMMENT) {
+                previousTopLevelSignificant = child;
+            }
             child = child.getTreeNext();
         }
         return clauses.toArray(EMPTY);
@@ -125,6 +135,7 @@ public class CypherStructureViewElement implements StructureViewTreeElement {
      */
     private static String buildClauseSnippet(@NotNull PsiElement kwElement) {
         StringBuilder sb = new StringBuilder(kwElement.getText().toUpperCase(Locale.ENGLISH));
+        ASTNode previousSignificant = kwElement.getNode();
         ASTNode current = kwElement.getNode().getTreeNext();
         while (current != null) {
             IElementType type = current.getElementType();
@@ -134,7 +145,11 @@ public class CypherStructureViewElement implements StructureViewTreeElement {
                 }
                 if (type == CypherTokenTypes.KEYWORD) {
                     String kw = current.getText().toUpperCase(Locale.ENGLISH);
-                    if (CypherTokenTypes.CLAUSE_START_KEYWORDS.contains(kw)) {
+                    String previousKeyword = previousSignificant.getElementType() == CypherTokenTypes.KEYWORD
+                            ? previousSignificant.getText()
+                            : null;
+                    if (CypherTokenTypes.CLAUSE_START_KEYWORDS.contains(kw)
+                            && !CypherTokenContext.isCompoundClauseContinuation(previousKeyword, kw)) {
                         break;
                     }
                 }
@@ -144,6 +159,9 @@ public class CypherStructureViewElement implements StructureViewTreeElement {
                     break;
                 }
                 sb.append(" ").append(text);
+                if (type != CypherTokenTypes.COMMENT) {
+                    previousSignificant = current;
+                }
             }
             current = current.getTreeNext();
         }

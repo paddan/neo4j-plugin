@@ -6,7 +6,7 @@ A lightweight IntelliJ IDEA plugin that adds support for Neo4j Cypher files (`.c
 
 ## Features
 - **Syntax highlighting** — keywords, functions, strings, comments, and more; customizable via `Settings > Editor > Color Scheme > Cypher`
-- **Code completion** — Cypher keywords and the full Neo4j 5.x built-in function catalog
+- **Code completion** — Cypher keywords and a curated Neo4j 5.x built-in function catalog
 - **Formatter** — consistent indentation and spacing; auto-uppercases keywords on reformat (`Code > Reformat Code`)
 - **Folding** — collapse multi-line delimiters and block comments
 - **Structure view** — top-level clause keywords listed in the Structure panel (`View > Tool Windows > Structure`)

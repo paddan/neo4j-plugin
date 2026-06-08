@@ -243,6 +243,30 @@ public class CypherCompletionContributor extends CompletionContributor {
     }
 
     /**
+     * Walks backward from the caret to locate the nearest unmatched brace that starts a subquery.
+     */
+    @Nullable
+    private static PsiElement findNearestEnclosingSubqueryBrace(@NotNull PsiElement start) {
+        int balance = 0;
+        PsiElement current = start;
+        while (current != null) {
+            IElementType type = current.getNode().getElementType();
+            if (type == CypherTokenTypes.BRACE_CLOSE) {
+                balance++;
+            } else if (type == CypherTokenTypes.BRACE_OPEN) {
+                if (balance == 0 && CypherTokenContext.isSubqueryBrace(current.getNode())) {
+                    return current;
+                }
+                if (balance > 0) {
+                    balance--;
+                }
+            }
+            current = PsiTreeUtil.prevLeaf(current);
+        }
+        return null;
+    }
+
+    /**
      * Walks forward from an opening token to find its matching closing token, ignoring nested pairs.
      */
     private static PsiElement findMatchingClosing(@NotNull PsiElement opening,
@@ -309,8 +333,15 @@ public class CypherCompletionContributor extends CompletionContributor {
      * subquery-local identifiers.
      */
     private static List<String> collectVisibleIdentifiers(@NotNull PsiElement position) {
+        PsiElement enclosingBrace = findNearestEnclosingSubqueryBrace(position);
+        return collectVisibleIdentifiersFrom(PsiTreeUtil.prevVisibleLeaf(position), enclosingBrace);
+    }
+
+    private static List<String> collectVisibleIdentifiersFrom(
+            @Nullable PsiElement start,
+            @Nullable PsiElement enclosingBrace) {
         LinkedHashSet<String> identifiers = new LinkedHashSet<>();
-        PsiElement current = PsiTreeUtil.prevVisibleLeaf(position);
+        PsiElement current = start;
         while (current != null && current.getNode() != null) {
             IElementType type = current.getNode().getElementType();
             if (type == CypherTokenTypes.BRACE_CLOSE) {
@@ -322,16 +353,207 @@ public class CypherCompletionContributor extends CompletionContributor {
             }
             if (type == CypherTokenTypes.KEYWORD) {
                 String keyword = current.getText().toUpperCase(Locale.ENGLISH);
-                if (CypherTokenTypes.CLAUSE_START_KEYWORDS.contains(keyword)) {
+                if ("UNION".equals(keyword)) {
                     break;
                 }
+                if ("WITH".equals(keyword)) {
+                    WithProjection projection = analyzeWithProjection(current);
+                    identifiers.removeAll(projection.inputs());
+                    identifiers.addAll(projection.outputs());
+                    if (!projection.preservesAll()) {
+                        break;
+                    }
+                }
+            }
+            if (current == enclosingBrace) {
+                break;
             }
             if (isValueIdentifier(current)) {
                 identifiers.add(current.getText());
             }
             current = PsiTreeUtil.prevVisibleLeaf(current);
         }
+
+        SubqueryImports imports = analyzeSubqueryImports(enclosingBrace);
+        identifiers.addAll(imports.named());
+        if (imports.allOuter() && enclosingBrace != null) {
+            PsiElement beforeBrace = PsiTreeUtil.prevVisibleLeaf(enclosingBrace);
+            PsiElement outerBrace = beforeBrace == null ? null : findNearestEnclosingSubqueryBrace(beforeBrace);
+            identifiers.addAll(collectVisibleIdentifiersFrom(beforeBrace, outerBrace));
+        }
         return List.copyOf(identifiers);
+    }
+
+    private static SubqueryImports analyzeSubqueryImports(@Nullable PsiElement braceOpen) {
+        if (braceOpen == null || braceOpen.getNode() == null
+                || !CypherTokenContext.isSubqueryBrace(braceOpen.getNode())) {
+            return SubqueryImports.none();
+        }
+
+        PsiElement previous = PsiTreeUtil.prevVisibleLeaf(braceOpen);
+        if (previous == null || previous.getNode() == null) {
+            return SubqueryImports.none();
+        }
+        if (previous.getNode().getElementType() == CypherTokenTypes.KEYWORD) {
+            String keyword = previous.getText().toUpperCase(Locale.ENGLISH);
+            return "CALL".equals(keyword) ? SubqueryImports.none() : SubqueryImports.allOuterVisible();
+        }
+        if (previous.getNode().getElementType() != CypherTokenTypes.PAREN_CLOSE) {
+            return SubqueryImports.none();
+        }
+
+        PsiElement scopeOpen = findMatchingOpening(
+                previous, CypherTokenTypes.PAREN_OPEN, CypherTokenTypes.PAREN_CLOSE);
+        PsiElement beforeScope = scopeOpen == null ? null : PsiTreeUtil.prevVisibleLeaf(scopeOpen);
+        if (scopeOpen == null || beforeScope == null || beforeScope.getNode() == null
+                || beforeScope.getNode().getElementType() != CypherTokenTypes.KEYWORD
+                || !"CALL".equalsIgnoreCase(beforeScope.getText())) {
+            return SubqueryImports.none();
+        }
+
+        LinkedHashSet<String> named = new LinkedHashSet<>();
+        PsiElement current = PsiTreeUtil.nextVisibleLeaf(scopeOpen);
+        while (current != null && current != previous && current.getNode() != null) {
+            IElementType type = current.getNode().getElementType();
+            if (type == CypherTokenTypes.OPERATOR && "*".equals(current.getText())) {
+                return SubqueryImports.allOuterVisible();
+            }
+            if (type == CypherTokenTypes.IDENTIFIER) {
+                named.add(current.getText());
+            }
+            current = PsiTreeUtil.nextVisibleLeaf(current);
+        }
+        return new SubqueryImports(named, false);
+    }
+
+    private static WithProjection analyzeWithProjection(@NotNull PsiElement withKeyword) {
+        LinkedHashSet<String> inputs = new LinkedHashSet<>();
+        LinkedHashSet<String> outputs = new LinkedHashSet<>();
+        List<PsiElement> item = new ArrayList<>();
+        boolean preservesAll = false;
+        int delimiterDepth = 0;
+
+        PsiElement current = PsiTreeUtil.nextVisibleLeaf(withKeyword);
+        while (current != null && current.getNode() != null) {
+            IElementType type = current.getNode().getElementType();
+            if (delimiterDepth == 0 && type == CypherTokenTypes.KEYWORD) {
+                String keyword = current.getText().toUpperCase(Locale.ENGLISH);
+                if (CypherTokenTypes.CLAUSE_START_KEYWORDS.contains(keyword)
+                        || CypherTokenTypes.CLAUSE_CONTINUATION_KEYWORDS.contains(keyword)) {
+                    break;
+                }
+            }
+            if (delimiterDepth == 0 && type == CypherTokenTypes.COMMA) {
+                preservesAll |= isWildcardProjectionItem(item);
+                addWithProjectionItem(item, inputs, outputs);
+                item.clear();
+            } else {
+                item.add(current);
+            }
+            if (isOpeningDelimiter(type)) {
+                delimiterDepth++;
+            } else if (isClosingDelimiter(type) && delimiterDepth > 0) {
+                delimiterDepth--;
+            }
+            current = PsiTreeUtil.nextVisibleLeaf(current);
+        }
+        preservesAll |= isWildcardProjectionItem(item);
+        addWithProjectionItem(item, inputs, outputs);
+        return new WithProjection(inputs, outputs, preservesAll);
+    }
+
+    private static boolean isWildcardProjectionItem(@NotNull List<PsiElement> item) {
+        boolean sawWildcard = false;
+        for (PsiElement element : item) {
+            if (element.getNode() == null) {
+                continue;
+            }
+            IElementType type = element.getNode().getElementType();
+            if (type == CypherTokenTypes.KEYWORD && "DISTINCT".equalsIgnoreCase(element.getText())) {
+                continue;
+            }
+            if (type != CypherTokenTypes.OPERATOR || !"*".equals(element.getText()) || sawWildcard) {
+                return false;
+            }
+            sawWildcard = true;
+        }
+        return sawWildcard;
+    }
+
+    private static void addWithProjectionItem(
+            @NotNull List<PsiElement> item,
+            @NotNull Set<String> inputs,
+            @NotNull Set<String> outputs) {
+        PsiElement alias = null;
+        List<PsiElement> identifiers = new ArrayList<>();
+        for (int i = 0; i < item.size(); i++) {
+            PsiElement element = item.get(i);
+            if (isValueIdentifier(element)) {
+                identifiers.add(element);
+            }
+            if (element.getNode() != null && element.getNode().getElementType() == CypherTokenTypes.KEYWORD
+                    && "AS".equalsIgnoreCase(element.getText()) && i + 1 < item.size()) {
+                PsiElement candidate = item.get(i + 1);
+                if (candidate.getNode() != null
+                        && candidate.getNode().getElementType() == CypherTokenTypes.IDENTIFIER) {
+                    alias = candidate;
+                }
+            }
+        }
+        for (PsiElement identifier : identifiers) {
+            inputs.add(identifier.getText());
+        }
+        if (alias != null) {
+            outputs.add(alias.getText());
+        } else {
+            PsiElement bareIdentifier = bareProjectionIdentifier(item);
+            if (bareIdentifier != null) {
+                outputs.add(bareIdentifier.getText());
+            }
+        }
+    }
+
+    @Nullable
+    private static PsiElement bareProjectionIdentifier(@NotNull List<PsiElement> item) {
+        PsiElement identifier = null;
+        for (PsiElement element : item) {
+            if (element.getNode() == null) {
+                continue;
+            }
+            IElementType type = element.getNode().getElementType();
+            if (type == CypherTokenTypes.KEYWORD && "DISTINCT".equalsIgnoreCase(element.getText())) {
+                continue;
+            }
+            if (type != CypherTokenTypes.IDENTIFIER || identifier != null) {
+                return null;
+            }
+            identifier = element;
+        }
+        return identifier;
+    }
+
+    private static boolean isOpeningDelimiter(@NotNull IElementType type) {
+        return type == CypherTokenTypes.PAREN_OPEN
+                || type == CypherTokenTypes.BRACKET_OPEN
+                || type == CypherTokenTypes.BRACE_OPEN;
+    }
+
+    private static boolean isClosingDelimiter(@NotNull IElementType type) {
+        return type == CypherTokenTypes.PAREN_CLOSE
+                || type == CypherTokenTypes.BRACKET_CLOSE
+                || type == CypherTokenTypes.BRACE_CLOSE;
+    }
+
+    private record WithProjection(Set<String> inputs, Set<String> outputs, boolean preservesAll) {}
+
+    private record SubqueryImports(Set<String> named, boolean allOuter) {
+        private static SubqueryImports none() {
+            return new SubqueryImports(Set.of(), false);
+        }
+
+        private static SubqueryImports allOuterVisible() {
+            return new SubqueryImports(Set.of(), true);
+        }
     }
 
     /**
@@ -359,48 +581,6 @@ public class CypherCompletionContributor extends CompletionContributor {
         return current;
     }
 
-    /**
-     * Heuristic for variable-like identifiers: skips labels (preceded by colon/dot) and property keys inside maps.
-     */
-    private static boolean isValueIdentifier(@NotNull PsiElement element) {
-        if (element.getNode() == null || element.getNode().getElementType() != CypherTokenTypes.IDENTIFIER) {
-            return false;
-        }
-        PsiElement previous = PsiTreeUtil.prevVisibleLeaf(element);
-        if (previous != null && previous.getNode() != null) {
-            IElementType type = previous.getNode().getElementType();
-            if (type == CypherTokenTypes.COLON || type == CypherTokenTypes.DOT) {
-                return false;
-            }
-        }
-
-        PsiElement next = PsiTreeUtil.nextVisibleLeaf(element);
-        if (next != null && next.getNode() != null && next.getNode().getElementType() == CypherTokenTypes.COLON) {
-            PsiElement brace = findNearestUnclosedOpening(element, CypherTokenTypes.BRACE_OPEN, CypherTokenTypes.BRACE_CLOSE);
-            return brace == null || isSubqueryBrace(brace);
-        }
-        return true;
-    }
-
-    private static boolean isSubqueryBrace(@NotNull PsiElement braceOpen) {
-        PsiElement beforeBrace = PsiTreeUtil.prevVisibleLeaf(braceOpen);
-        if (beforeBrace == null || beforeBrace.getNode() == null) {
-            return false;
-        }
-        if (beforeBrace.getNode().getElementType() == CypherTokenTypes.KEYWORD) {
-            return CypherTokenTypes.SUBQUERY_KEYWORDS.contains(beforeBrace.getText().toUpperCase(Locale.ENGLISH));
-        }
-        if (beforeBrace.getNode().getElementType() == CypherTokenTypes.PAREN_CLOSE) {
-            PsiElement scopeOpen = findMatchingOpening(beforeBrace, CypherTokenTypes.PAREN_OPEN, CypherTokenTypes.PAREN_CLOSE);
-            PsiElement beforeScope = scopeOpen == null ? null : PsiTreeUtil.prevVisibleLeaf(scopeOpen);
-            return beforeScope != null
-                    && beforeScope.getNode() != null
-                    && beforeScope.getNode().getElementType() == CypherTokenTypes.KEYWORD
-                    && "CALL".equalsIgnoreCase(beforeScope.getText());
-        }
-        return false;
-    }
-
     @Nullable
     private static PsiElement findMatchingOpening(@NotNull PsiElement closing,
                                                   @NotNull IElementType openingType,
@@ -420,5 +600,28 @@ public class CypherCompletionContributor extends CompletionContributor {
             current = PsiTreeUtil.prevLeaf(current);
         }
         return null;
+    }
+
+    /**
+     * Heuristic for variable-like identifiers: skips labels (preceded by colon/dot) and property keys inside maps.
+     */
+    private static boolean isValueIdentifier(@NotNull PsiElement element) {
+        if (element.getNode() == null || element.getNode().getElementType() != CypherTokenTypes.IDENTIFIER) {
+            return false;
+        }
+        PsiElement previous = PsiTreeUtil.prevVisibleLeaf(element);
+        if (previous != null && previous.getNode() != null) {
+            IElementType type = previous.getNode().getElementType();
+            if (type == CypherTokenTypes.COLON || type == CypherTokenTypes.DOT) {
+                return false;
+            }
+        }
+
+        PsiElement next = PsiTreeUtil.nextVisibleLeaf(element);
+        if (next != null && next.getNode() != null && next.getNode().getElementType() == CypherTokenTypes.COLON) {
+            PsiElement brace = findNearestUnclosedOpening(element, CypherTokenTypes.BRACE_OPEN, CypherTokenTypes.BRACE_CLOSE);
+            return brace == null || CypherTokenContext.isSubqueryBrace(brace.getNode());
+        }
+        return true;
     }
 }

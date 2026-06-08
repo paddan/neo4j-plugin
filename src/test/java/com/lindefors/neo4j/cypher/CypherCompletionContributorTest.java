@@ -46,18 +46,139 @@ public class CypherCompletionContributorTest extends BasePlatformTestCase {
                 result.contains("RETURN"));
     }
 
-    public void testIdentifierEarlierInSameValueClauseIsSuggested() {
-        // Variables already mentioned in the current value clause should be offered for re-use.
-        // Note: the contributor currently scopes to the *current* clause only — variables from
-        // prior MATCH/WITH clauses are not propagated. This test locks in the current behavior;
-        // the negative assertion below locks in the known limitation so a future fix can't
-        // silently change it without updating the test.
+    public void testIdentifiersFromEarlierClausesAreSuggested() {
         Set<String> result = completionsSet("MATCH (priorVar) RETURN someVar, <caret>");
         assertTrue("identifier from same RETURN clause should be in scope: " + result,
                 result.contains("someVar"));
-        assertFalse("variable from prior MATCH should NOT leak into RETURN scope (known limitation): "
-                        + result,
+        assertTrue("variable from prior MATCH should be in scope: " + result,
                 result.contains("priorVar"));
+    }
+
+    public void testWithClauseStopsIdentifiersFromEarlierScopesLeaking() {
+        Set<String> result = completionsSet("MATCH (hidden) WITH 1 AS visible RETURN <caret>");
+
+        assertTrue("WITH alias should be in scope: " + result, result.contains("visible"));
+        assertFalse("identifier before WITH should not leak: " + result, result.contains("hidden"));
+    }
+
+    public void testWithClauseKeepsBareProjectedIdentifier() {
+        Set<String> result = completionsSet("MATCH (kept) WITH kept RETURN <caret>");
+
+        assertTrue("bare WITH projection should stay in scope: " + result, result.contains("kept"));
+    }
+
+    public void testWithExpressionDoesNotKeepItsSourceIdentifier() {
+        Set<String> result = completionsSet("MATCH (hidden) WITH hidden.name RETURN <caret>");
+
+        assertFalse("source identifier from a WITH expression should not leak: " + result,
+                result.contains("hidden"));
+    }
+
+    public void testWithAliasRemainsVisibleAfterOrderBy() {
+        Set<String> result = completionsSet("MATCH (hidden) WITH 1 AS visible ORDER BY visible RETURN <caret>");
+
+        assertTrue("WITH alias should remain visible after ORDER BY: " + result, result.contains("visible"));
+        assertFalse("identifier before WITH should not leak through ORDER BY: " + result,
+                result.contains("hidden"));
+    }
+
+    public void testWithCountStarDoesNotPreserveEarlierVariables() {
+        Set<String> result = completionsSet("MATCH (hidden) WITH count(*) AS total RETURN <caret>");
+
+        assertTrue("WITH alias should be in scope: " + result, result.contains("total"));
+        assertFalse("count(*) should not behave like WITH *: " + result, result.contains("hidden"));
+    }
+
+    public void testWithMultiplicationDoesNotPreserveEarlierVariables() {
+        Set<String> result = completionsSet("MATCH (hidden) WITH hidden.score * 2 AS doubled RETURN <caret>");
+
+        assertTrue("WITH alias should be in scope: " + result, result.contains("doubled"));
+        assertFalse("multiplication should not behave like WITH *: " + result, result.contains("hidden"));
+    }
+
+    public void testWithWildcardPreservesEarlierVariables() {
+        Set<String> result = completionsSet("MATCH (preserved) WITH * RETURN <caret>");
+
+        assertTrue("WITH * should preserve earlier variables: " + result, result.contains("preserved"));
+    }
+
+    public void testUnionStopsIdentifiersFromPreviousBranchLeaking() {
+        Set<String> result = completionsSet(
+                "MATCH (previousBranch) RETURN previousBranch AS value "
+                        + "UNION MATCH (currentBranch) RETURN <caret>");
+
+        assertTrue("current UNION branch identifier should be in scope: " + result,
+                result.contains("currentBranch"));
+        assertFalse("previous UNION branch identifier should not leak: " + result,
+                result.contains("previousBranch"));
+    }
+
+    public void testScopedCallImportsAreSuggestedBeforeFirstUse() {
+        Set<String> result = completionsSet("MATCH (imported) CALL (imported) { RETURN <caret> }");
+
+        assertTrue("CALL scope import should be in scope before its first use: " + result,
+                result.contains("imported"));
+    }
+
+    public void testScopedCallWithoutImportsDoesNotSeeOuterIdentifier() {
+        Set<String> result = completionsSet("MATCH (outer) CALL () { RETURN <caret> }");
+
+        assertFalse("CALL () should not see outer-scope identifiers: " + result,
+                result.contains("outer"));
+    }
+
+    public void testScopedCallWildcardImportsAllOuterIdentifiers() {
+        Set<String> result = completionsSet("MATCH (outer) CALL (*) { RETURN <caret> }");
+
+        assertTrue("CALL (*) should see outer-scope identifiers: " + result,
+                result.contains("outer"));
+    }
+
+    public void testScopedCallImportSurvivesInnerWithClause() {
+        Set<String> result = completionsSet(
+                "MATCH (imported) CALL (imported) { WITH 1 AS inner RETURN <caret> }");
+
+        assertTrue("CALL scope import should survive an inner WITH: " + result,
+                result.contains("imported"));
+        assertTrue("inner WITH alias should be in scope: " + result, result.contains("inner"));
+    }
+
+    public void testExistsSubqueryCanSeeOuterIdentifierBeforeFirstUse() {
+        Set<String> result = completionsSet("MATCH (outer) WHERE EXISTS { RETURN <caret> }");
+
+        assertTrue("EXISTS subquery should see outer-scope identifiers: " + result,
+                result.contains("outer"));
+    }
+
+    public void testExistsSubqueryOuterIdentifierSurvivesInnerWithClause() {
+        Set<String> result = completionsSet(
+                "MATCH (outer) WHERE EXISTS { WITH 1 AS inner RETURN <caret> }");
+
+        assertTrue("EXISTS outer-scope identifier should survive an inner WITH: " + result,
+                result.contains("outer"));
+        assertTrue("inner WITH alias should be in scope: " + result, result.contains("inner"));
+    }
+
+    public void testCountSubqueryCanSeeOuterIdentifierBeforeFirstUse() {
+        Set<String> result = completionsSet("MATCH (outer) RETURN COUNT { RETURN <caret> }");
+
+        assertTrue("COUNT subquery should see outer-scope identifiers: " + result,
+                result.contains("outer"));
+    }
+
+    public void testMapLiteralCanSeeOuterIdentifier() {
+        Set<String> result = completionsSet("MATCH (outer) RETURN {value: <caret>}");
+
+        assertTrue("map literal value should see outer-scope identifiers: " + result,
+                result.contains("outer"));
+    }
+
+    public void testMapLiteralInsideExistsCanSeeOuterIdentifier() {
+        Set<String> result = completionsSet(
+                "MATCH (outer) WHERE EXISTS { RETURN {value: <caret>} }");
+
+        assertTrue("map literal inside EXISTS should see outer-scope identifiers: " + result,
+                result.contains("outer"));
     }
 
     public void testBraceBlockBeforeCaretIsSkippedWhenCollectingIdentifiers() {

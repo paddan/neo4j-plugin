@@ -3,9 +3,8 @@ package com.lindefors.neo4j.cypher;
 import java.util.List;
 
 /**
- * Catalogue of built-in Cypher functions offered as completion items. The list covers the Neo4j 5.x
- * function surface. Each entry is the canonical function name followed by {@code ()} so the completion
- * popup shows the call syntax immediately.
+ * Catalogue of built-in Cypher functions offered as completion items. Each entry is the canonical
+ * function name followed by {@code ()} so the completion popup shows the call syntax immediately.
  */
 public final class CypherFunctions {
     private CypherFunctions() {
@@ -104,8 +103,11 @@ public final class CypherFunctions {
             // Spatial functions
             "distance()",
             "point()",
-            "sphericalDistance()",
             "withinBBox()",
+
+            // Vector functions
+            "vector.similarity.cosine()",
+            "vector.similarity.euclidean()",
 
             // Aggregating functions
             "avg()",

@@ -391,7 +391,9 @@ public class CypherLexer extends LexerBase {
             position++;
         }
         String word = upperCaseAscii(buffer, tokenStart, position);
-        if (KEYWORDS.contains(word) && !(CypherTokenTypes.KEYWORD_FUNCTIONS.contains(word) && nextNonWhitespaceIs('('))) {
+        boolean functionName = CypherTokenTypes.KEYWORD_FUNCTIONS.contains(word) && nextNonWhitespaceIs('(');
+        boolean functionNamespace = nextNonWhitespaceIs('.') && qualifiedNameEndsWithOpeningParen();
+        if (KEYWORDS.contains(word) && !functionName && !functionNamespace) {
             tokenType = CypherTokenTypes.KEYWORD;
         } else {
             tokenType = CypherTokenTypes.IDENTIFIER;
@@ -456,6 +458,35 @@ public class CypherLexer extends LexerBase {
             peek++;
         }
         return peek < endOffset && buffer.charAt(peek) == expected;
+    }
+
+    private boolean qualifiedNameEndsWithOpeningParen() {
+        int peek = position;
+        boolean sawSegment = false;
+        while (peek < endOffset) {
+            while (peek < endOffset && Character.isWhitespace(buffer.charAt(peek))) {
+                peek++;
+            }
+            if (peek >= endOffset || buffer.charAt(peek) != '.') {
+                break;
+            }
+            peek++;
+            while (peek < endOffset && Character.isWhitespace(buffer.charAt(peek))) {
+                peek++;
+            }
+            if (peek >= endOffset || !isIdentifierStart(buffer.charAt(peek))) {
+                return false;
+            }
+            sawSegment = true;
+            peek++;
+            while (peek < endOffset && isIdentifierPart(buffer.charAt(peek))) {
+                peek++;
+            }
+        }
+        while (peek < endOffset && Character.isWhitespace(buffer.charAt(peek))) {
+            peek++;
+        }
+        return sawSegment && peek < endOffset && buffer.charAt(peek) == '(';
     }
 
     // Builds the upper-case form of buffer[start, end) in a single allocation. Only ASCII

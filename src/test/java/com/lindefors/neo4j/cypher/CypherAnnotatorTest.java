@@ -46,6 +46,7 @@ class CypherAnnotatorTest {
     void identifierAfterColonInsideBracketsIsRelationshipType() {
         // [:KNOWS]
         var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.OPERATOR, "-",
                 CypherTokenTypes.BRACKET_OPEN, "[",
                 CypherTokenTypes.COLON, ":",
                 CypherTokenTypes.IDENTIFIER, "KNOWS",
@@ -291,6 +292,7 @@ class CypherAnnotatorTest {
     void pipeSeparatedRelationshipTypesAllHighlightedAsRelType() {
         // [:KNOWS|LIKES] — both should be RELATIONSHIP_TYPE
         var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.OPERATOR, "-",
                 CypherTokenTypes.BRACKET_OPEN, "[",
                 CypherTokenTypes.COLON, ":",
                 CypherTokenTypes.IDENTIFIER, "KNOWS",
@@ -301,6 +303,35 @@ class CypherAnnotatorTest {
         var highlights = anns.stream().filter(a -> a.attributes() != null).toList();
         assertEquals(2, highlights.size());
         assertTrue(highlights.stream().allMatch(a -> a.attributes() == CypherSyntaxHighlighter.RELATIONSHIP_TYPE));
+    }
+
+    @Test
+    void labelPredicateInsideListComprehensionIsHighlightedAsLabel() {
+        var anns = annotator.computeAnnotations(tokens(
+                CypherTokenTypes.BRACKET_OPEN, "[",
+                CypherTokenTypes.IDENTIFIER, "n",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.KEYWORD, "IN",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.IDENTIFIER, "nodes",
+                CypherTokenTypes.PAREN_OPEN, "(",
+                CypherTokenTypes.IDENTIFIER, "path",
+                CypherTokenTypes.PAREN_CLOSE, ")",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.KEYWORD, "WHERE",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.IDENTIFIER, "n",
+                CypherTokenTypes.COLON, ":",
+                CypherTokenTypes.IDENTIFIER, "Person",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.OPERATOR, "|",
+                TokenType.WHITE_SPACE, " ",
+                CypherTokenTypes.IDENTIFIER, "n",
+                CypherTokenTypes.BRACKET_CLOSE, "]"
+        ));
+
+        assertTrue(anns.stream().anyMatch(a -> a.attributes() == CypherSyntaxHighlighter.LABEL));
+        assertTrue(anns.stream().noneMatch(a -> a.attributes() == CypherSyntaxHighlighter.RELATIONSHIP_TYPE));
     }
 
     @Test

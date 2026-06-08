@@ -91,15 +91,15 @@ RETURN batchStatus;
 // Tests inline subquery predicates introduced in Cypher 5.
 MATCH (p:Person)
 WHERE EXISTS {
-    MATCH (p)-[: DIRECTED]->(m: Movie)
+    MATCH (p)-[:DIRECTED]->(m:Movie)
     WHERE m.released >= 2010
 }
 AND COUNT {
-    MATCH (p)-[: ACTED_IN]->(: Movie)
+    MATCH (p)-[:ACTED_IN]->(:Movie)
 } > 3
 RETURN p.name AS name,
 COLLECT {
-    MATCH (p)-[: ACTED_IN]->(m: Movie)
+    MATCH (p)-[:ACTED_IN]->(m:Movie)
     RETURN m.title ORDER BY m.released
 } AS filmography;
 
@@ -150,7 +150,7 @@ START, date()).days AS daysElapsed,
 localdatetime( {year: 2025, month: 3, day: 1, hour: 9}) AS meeting;
 
 // ── Spatial / point functions ─────────────────────────────────────────────────
-// Tests point(), distance(), withinBBox(), and sphericalDistance().
+// Tests point(), distance(), and withinBBox().
 MATCH (venue:Venue)
 WHERE withinBBox(venue.location,
 POINT( {longitude: 18.0, latitude: 59.3}),
@@ -158,9 +158,7 @@ POINT( {longitude: 18.1, latitude: 59.4}))
 WITH venue,
 distance(venue.location, POINT( {longitude: 18.05, latitude: 59.33})) AS dist
 RETURN venue.name AS venue,
-round(dist) AS metersFromCenter,
-sphericalDistance(venue.location,
-POINT( {longitude: 18.05, latitude: 59.33, crs: 'wgs-84'})) AS spherical ORDER BY dist ASC;
+round(dist) AS metersFromCenter ORDER BY dist ASC;
 
 // ── reduce() and advanced list comprehensions ─────────────────────────────────
 // Tests reduce(), list comprehensions with WHERE, and predicate functions.

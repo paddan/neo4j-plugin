@@ -560,7 +560,7 @@ public class CypherBlock extends AbstractBlock {
         }
 
         ASTNode colonNode = leftIsColon ? leftNode : rightNode;
-        if (!isInsideBraces(colonNode)) {
+        if (!CypherTokenContext.isInsideMapLiteral(colonNode)) {
             return null;
         }
 
@@ -568,24 +568,6 @@ public class CypherBlock extends AbstractBlock {
             return SINGLE_SPACE;
         }
         return NO_SPACE;
-    }
-
-    private boolean isInsideBraces(@NotNull ASTNode node) {
-        int depth = 0;
-        ASTNode current = node.getTreePrev();
-        while (current != null) {
-            IElementType type = current.getElementType();
-            if (type == CypherTokenTypes.BRACE_CLOSE) {
-                depth++;
-            } else if (type == CypherTokenTypes.BRACE_OPEN) {
-                if (depth == 0) {
-                    return true;
-                }
-                depth--;
-            }
-            current = current.getTreePrev();
-        }
-        return false;
     }
 
     private boolean isPatternBoundary(IElementType type) {

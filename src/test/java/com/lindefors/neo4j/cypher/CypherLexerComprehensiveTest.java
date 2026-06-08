@@ -255,6 +255,13 @@ class CypherLexerComprehensiveTest {
                 "CLAUSE_START and CLAUSE_CONTINUATION must be disjoint, overlap: " + intersection);
     }
 
+    @Test
+    void neo4jFiveFunctionCatalogueIncludesVectorFunctionsAndExcludesUnsupportedEntry() {
+        assertTrue(CypherFunctions.FUNCTIONS.contains("vector.similarity.cosine()"));
+        assertTrue(CypherFunctions.FUNCTIONS.contains("vector.similarity.euclidean()"));
+        assertFalse(CypherFunctions.FUNCTIONS.contains("sphericalDistance()"));
+    }
+
     // --- Helper ---
 
     private List<Token> lex(String source) {

@@ -9,6 +9,7 @@ import com.intellij.psi.PsiExpression;
 import com.intellij.psi.PsiExpressionList;
 import com.intellij.psi.PsiImportList;
 import com.intellij.psi.PsiImportStatementBase;
+import com.intellij.psi.PsiImportStaticStatement;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
 import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiLanguageInjectionHost;
@@ -147,9 +148,14 @@ public class CypherJavaLanguageInjector implements MultiHostInjector {
             return false;
         }
         for (PsiImportStatementBase importStatement : importList.getAllImportStatements()) {
+            if (importStatement instanceof PsiImportStaticStatement) {
+                continue;
+            }
             PsiJavaCodeReferenceElement reference = importStatement.getImportReference();
             String importedName = reference == null ? null : reference.getQualifiedName();
-            if (importedName == null || !importedName.startsWith("org.neo4j.driver")) {
+            boolean driverPackage = "org.neo4j.driver".equals(importedName)
+                    || importedName != null && importedName.startsWith("org.neo4j.driver.");
+            if (!driverPackage) {
                 continue;
             }
             if (importStatement.isOnDemand() || importedName.endsWith("." + typeName)) {

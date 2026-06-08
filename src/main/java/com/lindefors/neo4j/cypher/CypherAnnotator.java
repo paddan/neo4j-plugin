@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 
 /**
  * Applies semantic highlighting (node labels, relationship types, property keys, function names)
@@ -24,11 +23,6 @@ import java.util.Set;
  * pass over the flat token list.
  */
 public class CypherAnnotator implements Annotator {
-
-    private static final Set<String> VALID_CONSECUTIVE_PAIRS = Set.of(
-            "OPTIONAL:MATCH",
-            "DETACH:DELETE"
-    );
 
     record LeafToken(IElementType type, String text, TextRange range) {}
 
@@ -91,6 +85,7 @@ public class CypherAnnotator implements Annotator {
         Deque<OpenDelimiter> delimiterStack = new ArrayDeque<>();
         // true = map literal {}, false = a CALL/EXISTS/COUNT/COLLECT subquery block
         Deque<Boolean> braceIsMapStack = new ArrayDeque<>();
+        Deque<Boolean> bracketIsRelationshipStack = new ArrayDeque<>();
 
         String lastClauseKeyword = null;
         boolean seenContentAfterClause = false;
@@ -104,9 +99,11 @@ public class CypherAnnotator implements Annotator {
                 delimiterStack.push(new OpenDelimiter(tok, CypherTokenTypes.PAREN_CLOSE));
             } else if (type == CypherTokenTypes.BRACKET_OPEN) {
                 delimiterStack.push(new OpenDelimiter(tok, CypherTokenTypes.BRACKET_CLOSE));
+                bracketIsRelationshipStack.push(CypherTokenContext.isRelationshipPatternBracket(
+                        tokens, i, LeafToken::type, LeafToken::text));
             } else if (type == CypherTokenTypes.BRACE_OPEN) {
                 delimiterStack.push(new OpenDelimiter(tok, CypherTokenTypes.BRACE_CLOSE));
-                boolean isSubquery = isSubqueryBrace(tokens, i);
+                boolean isSubquery = CypherTokenContext.isSubqueryBrace(tokens, i, LeafToken::type, LeafToken::text);
                 braceIsMapStack.push(!isSubquery);
             } else if (isClosingDelimiter(type)) {
                 if (delimiterStack.isEmpty() || delimiterStack.peek().expectedClose() != type) {
@@ -115,6 +112,8 @@ public class CypherAnnotator implements Annotator {
                     delimiterStack.pop();
                     if (type == CypherTokenTypes.BRACE_CLOSE) {
                         braceIsMapStack.pop();
+                    } else if (type == CypherTokenTypes.BRACKET_CLOSE) {
+                        bracketIsRelationshipStack.pop();
                     }
                 }
             }
@@ -136,7 +135,7 @@ public class CypherAnnotator implements Annotator {
 
                 boolean insideMapBrace = !braceIsMapStack.isEmpty() && braceIsMapStack.peek();
                 if (!insideMapBrace && isInLabelContext(tokens, i)) {
-                    if (isInsideBracket(delimiterStack)) {
+                    if (!bracketIsRelationshipStack.isEmpty() && bracketIsRelationshipStack.peek()) {
                         result.add(Annotation.highlight(tok.range(), CypherSyntaxHighlighter.RELATIONSHIP_TYPE));
                     } else {
                         result.add(Annotation.highlight(tok.range(), CypherSyntaxHighlighter.LABEL));
@@ -153,7 +152,7 @@ public class CypherAnnotator implements Annotator {
                 String upper = tok.text().toUpperCase(Locale.ENGLISH);
                 if (CypherTokenTypes.CLAUSE_START_KEYWORDS.contains(upper)) {
                     if (lastClauseKeyword != null && !seenContentAfterClause
-                            && !VALID_CONSECUTIVE_PAIRS.contains(lastClauseKeyword + ":" + upper)
+                            && !CypherTokenContext.isCompoundClauseContinuation(lastClauseKeyword, upper)
                             && !isMergeActionSet(tokens, i, upper)) {
                         result.add(Annotation.warning(tok.range(), "Unexpected keyword, missing clause body"));
                     }
@@ -251,34 +250,6 @@ public class CypherAnnotator implements Annotator {
         return null;
     }
 
-    private boolean isSubqueryBrace(List<LeafToken> tokens, int braceIndex) {
-        int previous = prevSignificantIndex(tokens, braceIndex);
-        if (previous < 0) return false;
-
-        LeafToken token = tokens.get(previous);
-        if (token.type() == CypherTokenTypes.KEYWORD) {
-            return CypherTokenTypes.SUBQUERY_KEYWORDS.contains(token.text().toUpperCase(Locale.ENGLISH));
-        }
-        if (token.type() != CypherTokenTypes.PAREN_CLOSE) return false;
-
-        int depth = 1;
-        for (int i = previous - 1; i >= 0; i--) {
-            IElementType type = tokens.get(i).type();
-            if (type == CypherTokenTypes.PAREN_CLOSE) {
-                depth++;
-            } else if (type == CypherTokenTypes.PAREN_OPEN) {
-                depth--;
-                if (depth == 0) {
-                    int beforeScope = prevSignificantIndex(tokens, i);
-                    return beforeScope >= 0
-                            && tokens.get(beforeScope).type() == CypherTokenTypes.KEYWORD
-                            && "CALL".equalsIgnoreCase(tokens.get(beforeScope).text());
-                }
-            }
-        }
-        return false;
-    }
-
     private static int prevSignificantIndex(List<LeafToken> tokens, int i) {
         for (int j = i - 1; j >= 0; j--) {
             if (tokens.get(j).type() != TokenType.WHITE_SPACE) return j;
@@ -292,8 +263,4 @@ public class CypherAnnotator implements Annotator {
                 || type == CypherTokenTypes.BRACE_CLOSE;
     }
 
-    private boolean isInsideBracket(Deque<OpenDelimiter> delimiterStack) {
-        return delimiterStack.stream()
-                .anyMatch(delimiter -> delimiter.token().type() == CypherTokenTypes.BRACKET_OPEN);
-    }
 }

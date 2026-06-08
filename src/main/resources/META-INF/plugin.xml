@@ -13,7 +13,7 @@
           <li><strong>Semantic syntax highlighting</strong> — keywords, function calls, node labels, relationship types,
               properties, and parameters each get their own color category, fully customizable under
               <em>Settings → Editor → Color Scheme → Cypher</em>.</li>
-          <li><strong>Code completion</strong> — all Cypher keywords and the complete Neo4j 5.x built-in function catalog.</li>
+          <li><strong>Code completion</strong> — all Cypher keywords and a curated Neo4j 5.x built-in function catalog.</li>
           <li><strong>Auto-formatter</strong> — consistent indentation and automatic keyword uppercasing on
               <em>Code → Reformat Code</em> (<kbd>Ctrl+Alt+L</kbd> / <kbd>⌘⌥L</kbd>).</li>
           <li><strong>Code folding</strong> — collapse multi-line delimiters and block comments to reduce visual noise
