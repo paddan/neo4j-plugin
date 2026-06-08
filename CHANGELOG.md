@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.20] — 2026-06-08
+
+### Fixed
+- Improved Cypher token context handling
+
+### Changed
+- Codeberg release build no longer queries JetBrains Marketplace for the latest plugin version (`initializeIntellijPlatformPlugin` self-update check). The network-isolated runner timed out on that call, failing the build; it is now disabled so releases no longer depend on Marketplace reachability
+
 ## [1.0.19] — 2026-06-08
 
 ### Changed
