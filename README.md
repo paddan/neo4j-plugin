@@ -16,7 +16,7 @@ A lightweight IntelliJ IDEA plugin that adds support for Neo4j Cypher files (`.c
 - **Java language injection** — Cypher support inside string literals passed directly or through resolvable variables to Neo4j driver `run(...)` methods
 
 ## Requirements
-- IntelliJ IDEA 2025.1+ (build 251+; no upper bound — compatible with future versions)
+- IntelliJ IDEA 2025.1+ (build 251+; the current build targets IntelliJ IDEA Community 2025.1)
 - JDK 21 (configured via Gradle toolchains)
 
 ## Build and Run

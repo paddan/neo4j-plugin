@@ -2,6 +2,9 @@ package com.lindefors.neo4j.cypher;
 
 import com.intellij.codeInsight.actions.ReformatCodeProcessor;
 import com.intellij.psi.PsiFile;
+import com.intellij.openapi.util.TextRange;
+import com.intellij.psi.codeStyle.CodeStyleSettings;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 
 /**
@@ -63,5 +66,13 @@ public class CypherKeywordCasePostFormatProcessorTest extends BasePlatformTestCa
                 result.contains("person:Person"));
         assertTrue("relationship types inside subqueries should keep tight colon spacing: " + result,
                 result.contains("[:KNOWS]"));
+    }
+
+    public void testPartialRangeDoesNotUppercaseTextInsideString() {
+        myFixture.configureByText("test.cyp", "RETURN 'match return'");
+        WriteCommandAction.runWriteCommandAction(getProject(), (Runnable) () ->
+                new CypherKeywordCasePostFormatProcessor().processText(
+                        myFixture.getFile(), new TextRange(8, 13), new CodeStyleSettings()));
+        assertEquals("RETURN 'match return'", myFixture.getEditor().getDocument().getText());
     }
 }

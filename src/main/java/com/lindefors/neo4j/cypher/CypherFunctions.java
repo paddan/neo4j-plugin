@@ -101,9 +101,9 @@ public final class CypherFunctions {
             "time()",
 
             // Spatial functions
-            "distance()",
+            "point.distance()",
             "point()",
-            "withinBBox()",
+            "point.withinBBox()",
 
             // Vector functions
             "vector.similarity.cosine()",

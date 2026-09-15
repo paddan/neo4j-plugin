@@ -523,6 +523,22 @@ class CypherAnnotatorTest {
     }
 
     @Test
+    void escapedQuoteAtEndOfStringIsReportedAsUnterminated() {
+        String text = "'abc\\'";
+        var anns = annotator.computeAnnotations(tokens(CypherTokenTypes.STRING, text));
+        assertEquals(1, anns.size());
+        assertTrue(anns.get(0).message().toLowerCase().contains("unterminated"));
+    }
+
+    @Test
+    void doubledBacktickAtEndOfIdentifierIsReportedAsUnterminated() {
+        String text = "`abc``";
+        var anns = annotator.computeAnnotations(tokens(CypherTokenTypes.IDENTIFIER, text));
+        assertEquals(1, anns.size());
+        assertTrue(anns.get(0).message().toLowerCase().contains("unterminated"));
+    }
+
+    @Test
     void terminatedParenthesizedParameterProducesNoError() {
         var anns = annotator.computeAnnotations(tokens(
                 CypherTokenTypes.PARAMETER, "$(foo)"

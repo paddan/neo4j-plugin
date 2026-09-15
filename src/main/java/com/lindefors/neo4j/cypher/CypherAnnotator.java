@@ -196,13 +196,13 @@ public class CypherAnnotator implements Annotator {
         if (type == CypherTokenTypes.STRING) {
             char open = text.charAt(0);
             if (open != '\'' && open != '"') return null;
-            if (text.length() < 2 || text.charAt(text.length() - 1) != open) {
+            if (!hasClosingQuote(text, open, true)) {
                 return "Unterminated string literal";
             }
             return null;
         }
         if (type == CypherTokenTypes.IDENTIFIER && text.charAt(0) == '`') {
-            if (text.length() < 2 || text.charAt(text.length() - 1) != '`') {
+            if (!hasClosingQuote(text, '`', false)) {
                 return "Unterminated quoted identifier";
             }
             return null;
@@ -221,6 +221,23 @@ public class CypherAnnotator implements Annotator {
             }
         }
         return null;
+    }
+
+    private static boolean hasClosingQuote(String text, char quote, boolean backslashEscapes) {
+        for (int i = 1; i < text.length(); i++) {
+            char current = text.charAt(i);
+            if (backslashEscapes && current == '\\') {
+                if (++i >= text.length()) return false;
+                continue;
+            }
+            if (current != quote) continue;
+            if (i + 1 < text.length() && text.charAt(i + 1) == quote) {
+                i++;
+                continue;
+            }
+            return i == text.length() - 1;
+        }
+        return false;
     }
 
     // Returns true if tokens[i] is in a label/reltype position: directly after :,

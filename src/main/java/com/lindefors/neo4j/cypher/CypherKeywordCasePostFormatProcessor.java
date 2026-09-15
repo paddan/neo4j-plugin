@@ -50,7 +50,9 @@ public class CypherKeywordCasePostFormatProcessor implements PostFormatProcessor
         // Scan the current document text with the lexer instead of using PSI node ranges,
         // because PSI may be stale after the formatter has changed whitespace in the document.
         CypherLexer lexer = new CypherLexer();
-        lexer.start(text, startOffset, endOffset, 0);
+        // Lex the complete document so a range beginning inside a string or comment still has
+        // the delimiter context needed to classify tokens correctly.
+        lexer.start(text, 0, text.length(), 0);
 
         List<TextRange> toReplace = new ArrayList<>();
         while (lexer.getTokenType() != null) {
@@ -58,7 +60,8 @@ public class CypherKeywordCasePostFormatProcessor implements PostFormatProcessor
                 int tokenStart = lexer.getTokenStart();
                 int tokenEnd = lexer.getTokenEnd();
                 String tokenText = text.subSequence(tokenStart, tokenEnd).toString();
-                if (!tokenText.equals(tokenText.toUpperCase(Locale.ENGLISH))) {
+                if (tokenStart >= startOffset && tokenEnd <= endOffset
+                        && !tokenText.equals(tokenText.toUpperCase(Locale.ENGLISH))) {
                     toReplace.add(new TextRange(tokenStart, tokenEnd));
                 }
             }
