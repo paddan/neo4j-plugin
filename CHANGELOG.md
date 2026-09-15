@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.21] — 2026-09-15
+
+### Fixed
+- Prevented partial-range formatting from changing text inside strings or comments
+- Corrected unterminated escaped-string and quoted-identifier detection
+- Corrected spatial function completions to use `point.distance()` and `point.withinBBox()`
+
+### Changed
+- Release CI runs the test suite before building the plugin
+- Documented the currently verified IntelliJ IDEA build instead of promising future compatibility
+
 ## [1.0.20] — 2026-06-08
 
 ### Fixed
